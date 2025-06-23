@@ -1,0 +1,9 @@
+This is a test file.
+It contains some sample text.
+This file will be used by the MCP client to test file operations.
+
+You can read this file using the read_file tool.
+You can also write to files using the write_file tool.
+And list files using the list_files tool.
+And create new files using the create_file tool.
+

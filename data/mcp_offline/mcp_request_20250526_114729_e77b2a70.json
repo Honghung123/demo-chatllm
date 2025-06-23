@@ -1,0 +1,20 @@
+{
+  "client_id": "local_client_001",
+  "timestamp": "2025-05-26T11:47:29.323536",
+  "file_metadata": [
+    {
+      "file_path": "data/documents\\python.pdf",
+      "file_name": "python.pdf",
+      "file_type": "pdf",
+      "label": "B (Nội dung liên quan đến lập trình Python)",
+      "summary": null,
+      "classification_method": "llm",
+      "file_size": 2687401,
+      "classified_at": "2025-05-26T11:47:29.323536"
+    }
+  ],
+  "batch_id": null,
+  "additional_info": {
+    "environment": "offline"
+  }
+}

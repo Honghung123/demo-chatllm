@@ -1,0 +1,40 @@
+{
+  "client_id": "local_client_001",
+  "timestamp": "2025-05-26T10:17:26.445044",
+  "file_metadata": [
+    {
+      "file_path": "data/documents\\java-8-streams-cheat-sheet.pdf",
+      "file_name": "java-8-streams-cheat-sheet.pdf",
+      "file_type": "pdf",
+      "label": "Programming (A)",
+      "summary": null,
+      "classification_method": "llm",
+      "file_size": 417003,
+      "classified_at": "2025-05-26T10:12:11.747057"
+    },
+    {
+      "file_path": "data/documents\\History of Java.docx",
+      "file_name": "History of Java.docx",
+      "file_type": "docx",
+      "label": "A (Tech & Computer Science)",
+      "summary": null,
+      "classification_method": "llm",
+      "file_size": 14603,
+      "classified_at": "2025-05-26T10:14:57.352918"
+    },
+    {
+      "file_path": "data/documents\\oops-java.pptx",
+      "file_name": "oops-java.pptx",
+      "file_type": "pptx",
+      "label": "Programming Guide (A)",
+      "summary": null,
+      "classification_method": "llm",
+      "file_size": 1526576,
+      "classified_at": "2025-05-26T10:17:26.445044"
+    }
+  ],
+  "batch_id": "batch_20250526_101726_7b96fc49",
+  "additional_info": {
+    "environment": "offline"
+  }
+}
