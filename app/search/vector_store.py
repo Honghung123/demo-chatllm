@@ -156,7 +156,7 @@ def index_documents(file_paths: List[str], force_reindex: bool = False) -> bool:
     Returns:
         True nếu thành công, False nếu thất bại
     """
-    from app.files.file_parser import chunk_text
+    from app.files.file_pre_processing import chunk_text
     
     vector_store = get_vector_store()
     if vector_store.index is not None and not force_reindex:

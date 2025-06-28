@@ -13,7 +13,7 @@ def load_pdf(file_path: str) -> Optional[str]:
             text += page.extract_text() or ""
         return text
     except Exception as e:
-        print(f"Lỗi đọc PDF: {e}")
+        print(f"Error reading PDF: {e}")
         return None
 
 def load_docx(file_path: str) -> Optional[str]:
@@ -23,7 +23,7 @@ def load_docx(file_path: str) -> Optional[str]:
         text = "\n".join([para.text for para in doc.paragraphs])
         return text
     except Exception as e:
-        print(f"Lỗi đọc DOCX: {e}")
+        print(f"Error reading DOCX: {e}")
         return None
 
 def load_pptx(file_path: str) -> Optional[str]:
@@ -37,7 +37,7 @@ def load_pptx(file_path: str) -> Optional[str]:
                     text += shape.text + "\n"
         return text
     except Exception as e:
-        print(f"Lỗi đọc PPTX: {e}")
+        print(f"Error reading PPTX: {e}")
         return None
 
 def load_txt(file_path: str) -> Optional[str]:
@@ -46,7 +46,7 @@ def load_txt(file_path: str) -> Optional[str]:
         with open(file_path, 'r', encoding='utf-8') as file:
             return file.read()
     except Exception as e:
-        print(f"Lỗi đọc TXT: {e}")
+        print(f"Error reading TXT: {e}")
         return None
 
 def load_file(file_path: str) -> Optional[str]:
@@ -60,5 +60,5 @@ def load_file(file_path: str) -> Optional[str]:
     elif file_path.lower().endswith(".txt"):
         return load_txt(file_path)
     else:
-        print("⚠️ Định dạng file không hỗ trợ.")
+        print("Unsupported file format.")
         return None
