@@ -1,0 +1,7 @@
+# Ignore IDE/editor files
+.vscode/
+.idea/
+
+# Ignore Python cache
+**/__pycache__/
+**/*.py[cod]

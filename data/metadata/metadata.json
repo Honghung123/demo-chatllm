@@ -1,0 +1,12 @@
+{
+  "python.pdf": {
+    "author": "admin",
+    "roles": ["admin", "hr", "sales"],
+    "category": {}
+  },
+  "History of Java.docx": {
+    "author": "admin",
+    "roles": ["admin", "tech", "marketing"],
+    "category": {}
+  }
+}

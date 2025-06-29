@@ -1,1 +1,0 @@
-# Unit test cho retriever 

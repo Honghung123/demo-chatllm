@@ -4,7 +4,7 @@ import os
 import sys
 import pytest
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from app.files import file_loader, file_parser
+from app.files import file_loader, file_pre_processing
 
 DATA_DIR = "data/documents"
 
@@ -32,7 +32,7 @@ def test_load_pptx():
 
 def test_chunk_text():
     text = "A" * 1000
-    chunks = file_parser.chunk_text(text, chunk_size=200, overlap=50)
+    chunks = file_pre_processing.chunk_text(text, chunk_size=200, overlap=50)
     # Số chunk phải lớn hơn 1, các chunk không rỗng, overlap đúng
     assert len(chunks) > 1
     assert all(len(chunk) > 0 for chunk in chunks)
