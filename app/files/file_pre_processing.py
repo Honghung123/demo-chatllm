@@ -16,7 +16,7 @@ STOP_WORDS = set(stopwords.words('english'))
 
 # chunk_text: function to split text into smaller chunks
 # with a specified size and overlap (overlap helps maintain context between chunks)
-def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> List[str]: 
+def chunk_text(text: str, chunk_size: int = 500, overlap: int = 100) -> List[str]: 
     if not text:
         return []
     chunks = []
