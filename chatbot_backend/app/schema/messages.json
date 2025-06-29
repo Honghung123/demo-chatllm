@@ -1,0 +1,10 @@
+[
+  {
+    "chat_id": "uuid",
+    "message_id": "uuid",
+    "content": "Hello, how can I help you today?",
+    "from_user": false,
+    "is_error": false,
+    "timestamp": "2023-10-01T12:00:00Z"
+  }
+]

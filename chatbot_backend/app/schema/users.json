@@ -1,0 +1,37 @@
+[
+  {
+    "username": "admin",
+    "password": "admin123",
+    "role": "admin"
+  },
+  {
+    "username": "userhr",
+    "password": "user123",
+    "role": "hr"
+  },
+  {
+    "username": "usersales",
+    "password": "user456",
+    "role": "sales"
+  },
+  {
+    "username": "usermarketing",
+    "password": "user789",
+    "role": "marketing"
+  },
+  {
+    "username": "userlegal",
+    "password": "user101112",
+    "role": "legal"
+  },
+  {
+    "username": "userfinance",
+    "password": "user131415",
+    "role": "finance"
+  },
+  {
+    "username": "userit",
+    "password": "user161718",
+    "role": "it"
+  }
+]
