@@ -60,8 +60,24 @@ print("Total documents in ChromaDB:", len(chroma_db.get_all_documents()))
 #     docs.append(doc)
 # doc_ids = chroma_db.add_documents(docs)
 
+# add History of Java.docx to ChromaDB
+# content = load_file(f'{DATA_DIR}/c-sharp.docx')
+# add_metadata(file_name="c-sharp.docx", author="user1", roles=[])
+# chunks = preprocess_text(content)
+# docs = []
+# for i, chunk in enumerate(chunks):
+#     doc = Document(
+#         id=uuid.uuid4(),
+#         content=chunk,
+#         metadata={
+#             "filename": "c-sharp.docx",
+#         }
+#     )
+#     docs.append(doc)
+# doc_ids = chroma_db.add_documents(docs)
 
-list_files = get_list_file_names_by_user_and_role("admin", "admin")
+
+list_files = get_list_file_names_by_user_and_role("user1", "hr")
 print(f"List of files for user1 and role hr: {list_files}")
 docs = chroma_db.search_relative_documents(query="learning java programming", n_results=10, filenames=list_files)
 print(f"Search results for 'learning java programming': {docs}")
