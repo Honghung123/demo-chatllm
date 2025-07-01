@@ -1,75 +1,60 @@
 import sys
-import os  
+import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) 
-from app.api.chat_api import start_api 
 
-def main():  
-    start_api() 
+from app.service.db_service import drop_all_tables
+from schema.file import FileSystem 
+from schema.conversation import Conversation
+from schema.user import User
+from service.role_service import RoleService
+from service.conversation_service import ConversationService
+from service.message_service import MessageService
+from service.file_service import FileService
+from service.user_service import UserService  
+from api.chat_api import start_api 
+ 
+def seed_role_data(): 
+    RoleService.create_table_if_not_exists()
+    RoleService.initialize_default_roles()
+    for role in RoleService.get_all():
+        print(role.name) 
+
+def seed_user_data(): 
+    UserService.create_table_if_not_exists()
+    UserService.create(user=User(username="admin", password="123456", role="admin"))  
+    UserService.create(user=User(username="humanresource", password="123456", role="hr"))  
+    UserService.create(user=User(username="sales", password="123456", role="sales"))  
+    UserService.create(user=User(username="marketing", password="123456", role="marketing"))  
+    UserService.create(user=User(username="legal", password="123456", role="legal"))  
+    UserService.create(user=User(username="finance", password="123456", role="finance"))  
+    UserService.create(user=User(username="it", password="123456", role="it"))  
+
+def seed_conversation_data(): 
+    ConversationService.create_table_if_not_exists() 
+
+def seed_message_data(): 
+    MessageService.create_table_if_not_exists() 
+
+def seed_file_data(): 
+    FileService.create_table_if_not_exists()
+    FileService.create(file=FileSystem(name="abds232s-2324.pdf", orginal_name="ke hoach 2025", extension="pdf", username="admin"))
+    FileService.create(file=FileSystem(name="rwrvvsd-23sb.docx", orginal_name="Docker introduction", extension="docx", username="admin"))
+    FileService.create(file=FileSystem(name="bpsdfs2-bc04.txt", orginal_name="Project proposal", extension="txt", username="admin"))
+    FileService.create(file=FileSystem(name="serfsfs-aa35.excel", orginal_name="My project.excel", extension="excel", username="humanresource"))
+    FileService.create(file=FileSystem(name="serfsfs-abce.pdf", orginal_name="IT Report.pdf", extension="pdf", username="it"))
+    FileService.create(file=FileSystem(name="abpopei-bc00.excel", orginal_name="Sales Report.excel", extension="excel", username="sales"))
+    FileService.create(file=FileSystem(name="abpopei-3132.txt", orginal_name="Legal Report.txt", extension="txt", username="legal"))
+    FileService.create(file=FileSystem(name="abccsdd-httt.excel", orginal_name="Marketing Report.excel", extension="excel", username="marketing"))
+    FileService.create(file=FileSystem(name="tet4t44-sfad.pptx", orginal_name="Finance Report.pptx", extension="pptx", username="finance"))
+     
+def seed_data():    
+    drop_all_tables()
+    seed_role_data()
+    seed_user_data()
+    seed_conversation_data()
+    seed_message_data()
+    seed_file_data()
 
 if __name__ == "__main__":
-    main()
-
-"""
-# Consider to delete this in the future
-def print_colored(text, color=None):
-    colors = {
-        'blue': '\033[94m',
-        'green': '\033[92m',
-        'yellow': '\033[93m',
-        'red': '\033[91m',
-        'bold': '\033[1m',
-        'underline': '\033[4m',
-        'end': '\033[0m'
-    }
-    
-    if color and color in colors:
-        print(f"{colors[color]}{text}{colors['end']}")
-    else:
-        print(text)
-
-def setup_environment(): 
-    
-    # Xác minh thư mục documents đã tồn tại
-    docs_dir = "data/documents"
-    if not os.path.exists(docs_dir):
-        print_colored(f"❌ Không tìm thấy thư mục {docs_dir}!", "red")
-        print_colored(f"Tạo thư mục {docs_dir} và thêm các file PDF, DOCX, PPTX để tìm kiếm và phân loại.", "yellow")
-        os.makedirs(docs_dir, exist_ok=True)
-    
-    # Kiểm tra thư mục vector store
-    vector_store_dir = "data/vector_store"
-    if not os.path.exists(vector_store_dir):
-        os.makedirs(vector_store_dir, exist_ok=True)
-    
-    # Index các file - force reindex để đảm bảo dùng model mới
-    print_colored("Đang đánh chỉ mục các file văn bản...", "blue")
-    retriever = get_retriever()
-    
-    # Liệt kê file để kiểm tra
-    file_count = 0
-    for root, _, files in os.walk(docs_dir):
-        for file in files:
-            if file.lower().endswith(('.pdf', '.docx', '.pptx', '.doc', '.ppt')) and not file.startswith('.'):
-                file_count += 1
-                print_colored(f"  - {file}", "blue")
-    
-    if file_count == 0:
-        print_colored("⚠️ Không tìm thấy file nào trong thư mục documents!", "yellow")
-        return True
-        
-    # Force reindex với model mới
-    if retriever.index_files(force_reindex=True):
-        print_colored(f"✓ Đã đánh chỉ mục xong {file_count} file!", "green")
-    else:
-        print_colored("⚠️ Không có file nào được đánh chỉ mục", "yellow")
-    
-    return True
-
-def main():  
-    # Thiết lập môi trường
-    # setup_environment()
-    
-    # Khởi chạy giao diện desktop
-    print_colored("Starting desktop UI...", "blue")
-    start_desktop_ui()
-"""
+    seed_data()
+    start_api() 

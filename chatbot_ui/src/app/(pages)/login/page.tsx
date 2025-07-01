@@ -9,10 +9,11 @@ import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function LoginPage() {
-	const [username, setUsername] = useState("");
-	const [password, setPassword] = useState("");
+	const [username, setUsername] = useState("admin");
+	const [password, setPassword] = useState("123456");
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState("");
@@ -25,11 +26,12 @@ export default function LoginPage() {
 
 		try {
 			const response = await handleLogin(username, password);
+			console.log(response);
+			if (!response) throw new Error();
 			sessionStorage.setItem("user", JSON.stringify(response));
-			// Navigate to /chat
 			router.push("/chat");
 		} catch (err: any) {
-			setError(err.response?.data?.message || "Login failed. Please try again.");
+			toast("Login failed. Please try again.");
 		} finally {
 			setIsLoading(false);
 		}

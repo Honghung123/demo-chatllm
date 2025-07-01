@@ -34,8 +34,7 @@ interface ChatMainProps {
 
 export function ChatMain({ user }: ChatMainProps) {
 	const router = useRouter();
-	const queryParams = useSearchParams();
-	const pathname = usePathname();
+	const [conversationId, setConversationId] = useState<string | null>(null);
 	const [aiModels, setAiModels] = useState<AIModel[]>([]);
 	const [selectedModel, setSelectedModel] = useState<AIModel | null>(null);
 	const [messages, setMessages] = useState<MessageType[]>([]);
@@ -48,16 +47,12 @@ export function ChatMain({ user }: ChatMainProps) {
 	const controllerRef = useRef<AbortController | null>(null);
 
 	useEffect(() => {
-		const loadModels = async (chatId: string) => {
+		const loadModels = async () => {
 			const models = await getAllAiModels();
 			setAiModels(models);
 			setSelectedModel(models[0]);
-			const chatHistory = await getChatHistory(user.id.toString(), chatId);
-			setMessages(chatHistory);
-			setIsLoadingPage(false);
 		};
-		const chatId = queryParams.get("chatId") || "1";
-		loadModels(chatId);
+		loadModels();
 		controllerRef.current = new AbortController();
 		return () => {
 			controllerRef.current!.abort();
@@ -66,8 +61,10 @@ export function ChatMain({ user }: ChatMainProps) {
 
 	useEffect(() => {
 		const unsubscribe = eventBus.on("changeConversation", async (payload) => {
-			const chatHistory = await getChatHistory(user.id.toString(), payload.chatId);
+			const chatHistory = await getChatHistory(user.id, payload.conversationId);
 			setMessages(chatHistory);
+			setConversationId(payload.conversationId!);
+			setIsLoadingPage(false);
 		});
 		return () => {
 			unsubscribe();
@@ -105,6 +102,8 @@ export function ChatMain({ user }: ChatMainProps) {
 		setInput("");
 		setIsChatResponding(true);
 		const request: ChatRequestType = {
+			userId: user.id,
+			conversationId: conversationId!,
 			role: userMessage.role,
 			content: userMessage.content,
 			history: [],

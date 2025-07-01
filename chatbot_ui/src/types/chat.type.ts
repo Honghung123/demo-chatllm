@@ -1,10 +1,10 @@
 import { LucideIcon } from "lucide-react";
 
 export type ConversationType = {
-	chatId: string;
-	userId: string;
+	id: string;
+	user_id: string;
 	title: string;
-	createdAt: string;
+	timestamp: string;
 };
 
 export type ChatMessageHistoryType = {
@@ -20,6 +20,8 @@ export type AIModel = {
 };
 
 export type ChatRequestType = {
+	userId: string;
+	conversationId: string;
 	role: string;
 	content: string;
 	history: ChatMessageHistoryType[];
@@ -50,10 +52,9 @@ export type FileListType = {
 
 export type FileType = {
 	id: string;
-	userId: string;
 	name: string;
-	fileName: string;
-	fileNameInServer: string;
+	orginal_name: string;
+	username: string;
 	extension: string;
 	timestamp: string;
 };

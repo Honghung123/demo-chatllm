@@ -50,11 +50,15 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
 	useEffect(() => {
 		const fetchData = async () => {
 			const [chatHistoriesList, listProvidedFiles] = await Promise.all([
-				getAllChatHistories(user.id.toString()),
-				getAllProvidedFiles(user.id.toString()),
+				getAllChatHistories(user.id),
+				getAllProvidedFiles(user.username),
 			]);
-			setChatHistory(chatHistoriesList);
 			setListFiles(listProvidedFiles);
+			if (chatHistoriesList.length == 0) {
+				handleAddNewChat();
+			} else {
+				setChatHistory(chatHistoriesList);
+			}
 		};
 		fetchData();
 	}, []);
@@ -63,7 +67,7 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
 		const unsubscribe = eventBus.on("uploadFiles", async (payload) => {
 			try {
 				const files = payload.files;
-				const response = await uploadFileToServer(user.id.toString(), files);
+				const response = await uploadFileToServer(user.username, files);
 				const existingFiles = [...listFilesRef.current];
 				existingFiles[1].listFiles.push(...response);
 				setListFiles(existingFiles);
@@ -79,19 +83,19 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
 	}, []);
 
 	const handleAddNewChat = async () => {
-		const newChatConversation = await addNewCoversation(user.id.toString());
+		const newChatConversation = await addNewCoversation(user.id);
 		setChatHistory([newChatConversation, ...chatHistory]);
-		eventBus.emit("changeConversation", { chatId: newChatConversation.chatId });
-		setSelectedChat(newChatConversation.chatId);
+		eventBus.emit("changeConversation", { conversationId: newChatConversation.id });
+		setSelectedChat(newChatConversation.id);
 	};
 
 	const handleSelectChat = (chatId: string) => {
-		eventBus.emit("changeConversation", { chatId: chatId });
+		eventBus.emit("changeConversation", { conversationId: chatId });
 		setSelectedChat(chatId);
 	};
 
-	const handleDeleteChat = (chatId: string) => {
-		setChatHistory((prev) => prev.filter((chat) => chat.chatId !== chatId));
+	const handleDeleteChat = (conversationId: string) => {
+		setChatHistory((prev) => prev.filter((chat) => chat.id !== conversationId));
 	};
 
 	return (
@@ -125,8 +129,8 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
 								{chatHistory.map((chat, index) => (
 									<SidebarMenuItem key={index}>
 										<SidebarMenuButton
-											isActive={selectedChat == chat.chatId}
-											onClick={() => handleSelectChat(chat.chatId)}
+											isActive={selectedChat == chat.id}
+											onClick={() => handleSelectChat(chat.id)}
 											className="w-full justify-start text-gray-700 hover:bg-[#efefef] data-[active=true]:bg-[#efefef] cursor-pointer"
 										>
 											<span className="truncate">{chat.title}</span>
@@ -150,7 +154,7 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
 													<Archive className="w-4 h-4 mr-2" />
 													Archive
 												</DropdownMenuItem> */}
-												<DropdownMenuItem className="text-red-600" onClick={() => handleDeleteChat(chat.chatId)}>
+												<DropdownMenuItem className="text-red-600" onClick={() => handleDeleteChat(chat.id)}>
 													<Trash2 className="w-4 h-4 mr-2" />
 													Delete
 												</DropdownMenuItem>
@@ -183,7 +187,7 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
 														<SidebarMenuButton className="w-full justify-start text-gray-700 hover:bg-[#efefef] data-[active=true]:bg-[#efefef] cursor-pointer !p-1">
 															<div className="flex gap-1">
 																<Image src={getFileIcon(file.extension)} alt="File Icon" className="w-4 h-4" />
-																<span className="truncate line-clamp-1">{file.fileName}</span>
+																<span className="truncate line-clamp-1">{file.orginal_name}</span>
 															</div>
 														</SidebarMenuButton>
 														<DropdownMenu>

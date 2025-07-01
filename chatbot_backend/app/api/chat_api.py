@@ -9,7 +9,15 @@ from typing import List, Dict, Any, Optional
 import uvicorn
 import os
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.model_provider import get_model_event_generator 
+from app.api.model_provider import get_model_event_generator  
+from app.schema.conversation import Conversation
+from app.schema.file import FileSystem
+from app.schema.message import Message
+from app.schema.role import RoleName
+from app.service.conversation_service import ConversationService
+from app.service.file_service import FileService
+from app.service.user_service import UserService
+from app.service.message_service import MessageService
 from utils.environment import SERVER_HOST, SERVER_PORT
 
 app = FastAPI(
@@ -18,53 +26,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Allow localhost:3000
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
-) 
-
-class ChatRequest(BaseModel):
-    role: str
-    content: str
-    history: Optional[List[Dict[str, str]]] = None
-    model: str
-    modelName: str
-
-class ChatResponse(BaseModel):
-    id: str
-    userId: str
-    chatId: str
-    role: str
-    content: str
-    timestamp: str
-    isError: bool
-
-class ConversationResponse(BaseModel):
-    chatId: str
-    userId: str
-    title: str
-    createdAt: str
-
-class FileResponse(BaseModel):
-    id: str
-    userId: str
-    name: str
-    fileName: str
-    fileNameInServer: str
-    extension: str
-    timestamp: str
-
-class ListFileResponse(BaseModel):
-    name: str
-    listFiles: List[FileResponse]
-
-@app.get("/ai-models", response_model=List[Dict[str, Any]])
-async def getAllModels():
-    return [    
+aiModels = [    
         {
             "model": "gemini",
             "modelName": "gemini-2.5-flash",
@@ -77,9 +39,69 @@ async def getAllModels():
             "displayName": "Ollama - Mistral",
             "description": "Great for everyday tasks",
         }, 
-    ] 
+    ]
 
-@app.post("/chat", response_model=ChatResponse)
+@app.get("/ai-models", response_model=List[Dict[str, Any]])
+async def getAllModels():
+    return aiModels  
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+    
+@app.post("/login", response_model=Dict[str, Any])
+async def login(request: LoginRequest): 
+    user = UserService.authenticate(request.username, request.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    print("Authenticated user:", user.to_response_dict())
+    return user.to_response_dict()
+ 
+@app.get("/conversations/{userId}", response_model=List[Conversation])
+async def get_list_conversations(userId: str):
+    return ConversationService.get_all_by_user_id(userId)
+
+@app.post("/conversations/new/{userId}", response_model=Conversation)
+async def new_conversation(userId: str):
+    conversation = Conversation( 
+        user_id=userId,
+        title="New conservation",
+    )
+    ConversationService.create(conversation)
+    return conversation
+class ListFileResponse(BaseModel):
+    name: str
+    listFiles: List[FileSystem]
+
+@app.get("/files/{username}", response_model=List[ListFileResponse])
+def get_list_chat_histories(username: str):
+    system_files = FileService.get_by_username(RoleName.ADMIN)
+    personal_files = FileService.get_by_username(username)
+    return [
+        { 
+            "name": "System",
+            "listFiles": system_files
+        },
+        { 
+            "name": "Persional",
+            "listFiles": personal_files
+        },
+    ]
+ 
+@app.get("/chat-histories/{userId}/{conversationId}", response_model=List[Message])
+async def get_chat_history(userId: str, conversationId: str):
+    return MessageService.get_all_chat(userId, conversationId)
+
+class ChatRequest(BaseModel):
+    conversationId: str
+    userId: str
+    role: str
+    content: str
+    history: Optional[List[Dict[str, str]]] = None
+    model: str
+    modelName: str
+ 
+@app.post("/chat", response_model=Message)
 async def handle_chat(httpRequest: Request, request: ChatRequest):
     try:
         event_generator = get_model_event_generator(request.model)
@@ -88,103 +110,11 @@ async def handle_chat(httpRequest: Request, request: ChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")
 
-@app.get("/chat-histories/{userId}", response_model=List[ConversationResponse])
-async def get_list_chat_histories(userId: str):
-    return [
-	    { 
-            "chatId": "1", 
-            "userId": userId,
-            "title": "A conservation", 
-            "createdAt": "2025-05-31T15:30:00Z" 
-        }, 
-    ]
 
-@app.get("/files/{userId}", response_model=List[ListFileResponse])
-async def get_list_chat_histories(userId: str):
-    return [
-	{ 
-		"name": "System",
-		"listFiles": [
-			{
-				"id": "1",
-                "userId": userId,
-				"name": "Ke hoach 2025",
-				"fileName": "Ke hoach 2025.docx",
-                "fileNameInServer": "abdfesdff.docx",
-				"extension": "docx",
-				"timestamp": "2025-05-31T15:30:00Z",
-			},
-			{
-				"id": "2",
-                "userId": userId,
-				"name": "demo",
-				"fileName": "demo.pdf",
-                "fileNameInServer": "wrcvxddx.pdf",
-				"extension": "pdf",
-				"timestamp": "2025-05-31T15:30:00Z",
-			},
-			{
-				"id": "3",
-                "userId": userId,
-				"name": "test",
-				"fileName": "test.pdf",
-                "fileNameInServer": "ecxafttx.pdf",
-				"extension": "pdf",
-				"timestamp": "2025-05-31T15:30:00Z",
-			},
-		],
-	},
-	{ 
-		"name": "Persional",
-		"listFiles": [
-			{
-				"id": "1",
-                "userId": userId,
-				"name": "Marketing plan",
-				"fileName": "Marketing plan.txt",
-                "fileNameInServer": "zfsfsfsd.txt",
-				"extension": "txt",
-				"timestamp": "2025-05-31T15:30:00Z",
-			},
-			{
-				"id": "2",
-                "userId": userId,
-				"name": "notes",
-				"fileName": "notes.pptx",
-                "fileNameInServer": "khklkjhd.pptx",
-				"extension": "pptx",
-				"timestamp": "2025-05-31T15:30:00Z",
-			},
-		],
-	},
-]
-
-@app.get("/chat-histories/{userId}/{chatId}", response_model=List[ChatResponse])
-async def get_chat_history(userId: str, chatId: str):
-    return [
-		{
-			"id": "1",
-            "userId": userId,
-			"chatId": chatId,
-			"role": "assistant",
-			"content": "Hello! I'm an AI assistant. How can I help you today?",
-			"timestamp": datetime.now().isoformat(),
-			"isError": False,
-		},
-	]
-
-@app.post("/new-conversation/{userId}", response_model=ConversationResponse)
-async def new_conversation(userId: str):
-    return { 
-        "chatId": str(random.randint(100, 1000000)), 
-        "userId": userId,
-        "title": "Start a new conservation", 
-        "createdAt": datetime.now().isoformat() }
-
-@app.post("/upload/{userId}", response_model=List[FileResponse])
-async def upload_file(userId: str, files: List[UploadFile] = File(...)):
+@app.post("/upload/{username}", response_model=List[FileSystem])
+async def upload_file(username: str, files: List[UploadFile] = File(...)):
     saved_files = []
-    user_dir = f"mcp_server/files/{userId}" 
+    user_dir = f"mcp_server/files/{username}" 
     if not os.path.exists(user_dir):
         os.makedirs(user_dir, exist_ok=True) 
     for file in files:
@@ -194,22 +124,22 @@ async def upload_file(userId: str, files: List[UploadFile] = File(...)):
         contents = await file.read()
         with open(file_path, "wb") as f:
             f.write(contents) 
-        saved_files.append({
-            "id": str(random.randint(100, 1000000)),
-            "userId": userId,
-            "name": file.filename.split(".")[0],
-            "fileName": file.filename,
-            "fileNameInServer": fileNameInServer,
-            "extension": extension,
-            "timestamp": datetime.now().isoformat(),
-        })
+        saved_files.append(FileSystem(name=fileNameInServer, orginal_name=file.filename, extension=extension, username=username))
     return saved_files
- 
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Allow localhost:3000
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+) 
+
 # Run the API server
 def start_api(): 
     host = SERVER_HOST
-    port = int(SERVER_PORT)
-    print(f"Starting API server on {SERVER_HOST}:{SERVER_PORT}")
+    port = int(SERVER_PORT) 
     uvicorn.run(app, host=host, port=port)
 
 """

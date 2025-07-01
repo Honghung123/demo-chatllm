@@ -1,3 +1,4 @@
+import myAxios from "@/api/axios";
 import { AIModel, ChatRequestType, ConversationType, FileListType, FileType, MessageType } from "@/types/chat.type";
 import axios from "axios";
 import { Settings, User } from "lucide-react";
@@ -16,14 +17,14 @@ export const chatStreamingResponse = async (request: ChatRequestType, controller
 };
 
 export const getAllAiModels = async () => {
-	const res = await axios.get<AIModel[]>(`${BASE_URL}/ai-models`, {
+	const res = await myAxios.get<AIModel[]>(`/ai-models`, {
 		headers: { "Content-Type": "application/json" },
 	});
 	return res.data;
 };
 
 export const getChatHistory = async (userId: string, chatId: string): Promise<MessageType[]> => {
-	const res = await axios.get<MessageType[]>(`${BASE_URL}/chat-histories/${userId}/${chatId}`, {
+	const res = await myAxios.get<MessageType[]>(`/chat-histories/${userId}/${chatId}`, {
 		headers: { "Content-Type": "application/json" },
 	});
 	return res.data;
@@ -31,21 +32,21 @@ export const getChatHistory = async (userId: string, chatId: string): Promise<Me
 
 // CHAT_SIDEBAR
 export const addNewCoversation = async (userId: string) => {
-	const res = await axios.post<ConversationType>(`${BASE_URL}/new-conversation/${userId}`, {
+	const res = await myAxios.post<ConversationType>(`/conversations/new/${userId}`, {
 		headers: { "Content-Type": "application/json" },
 	});
 	return res.data;
 };
 
 export const getAllChatHistories = async (userId: string) => {
-	const res = await axios.get<ConversationType[]>(`${BASE_URL}/chat-histories/${userId}`, {
+	const res = await myAxios.get<ConversationType[]>(`/conversations/${userId}`, {
 		headers: { "Content-Type": "application/json" },
 	});
 	return res.data;
 };
 
-export const getAllProvidedFiles = async (userId: string) => {
-	const res = await axios.get<FileListType[]>(`${BASE_URL}/files/${userId}`, {
+export const getAllProvidedFiles = async (username: string) => {
+	const res = await myAxios.get<FileListType[]>(`/files/${username}`, {
 		headers: { "Content-Type": "application/json" },
 	});
 	res.data[0].icon = Settings;
@@ -53,13 +54,13 @@ export const getAllProvidedFiles = async (userId: string) => {
 	return res.data;
 };
 
-export const uploadFileToServer = async (userId: string, files: File[]) => {
+export const uploadFileToServer = async (username: string, files: File[]) => {
 	const formData = new FormData();
 	for (let i = 0; i < files.length; i++) {
 		formData.append("files", files[i]);
 	}
 	try {
-		const res = await axios.post<FileType[]>(`${BASE_URL}/upload/${userId}`, formData, {
+		const res = await myAxios.post<FileType[]>(`/upload/${username}`, formData, {
 			headers: {
 				"Content-Type": "multipart/form-data",
 			},
