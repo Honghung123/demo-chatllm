@@ -5,3 +5,4 @@
 # Ignore Python cache
 **/__pycache__/
 **/*.py[cod]
+data/

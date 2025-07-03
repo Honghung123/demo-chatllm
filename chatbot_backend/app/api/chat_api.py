@@ -145,7 +145,10 @@ async def upload_file(username: str, files: List[UploadFile] = File(...)):
             )
             docs.append(doc)
         chroma_db.add_documents(docs)
-        saved_files.append(FileSystem(name=file_name_in_server, orginal_name=file.filename, extension=extension, username=username))
+        # save file to database
+        file_system = FileSystem(name=file_name_in_server, orginal_name=file.filename, extension=extension, username=username)
+        FileService.create(file=file_system)
+        saved_files.append(file_system)
     return saved_files
 
 # upload file for admin
@@ -176,7 +179,10 @@ async def upload_file(files: List[UploadFile] = File(...), roles: List[str] = Fo
             )
             docs.append(doc)
         chroma_db.add_documents(docs)
-        saved_files.append(FileSystem(name=file_name_in_server, orginal_name=file.filename, extension=extension, username="admin"))
+        # save file to database
+        file_system = FileSystem(name=file_name_in_server, orginal_name=file.filename, extension=extension, username="admin")
+        FileService.create(file=file_system)
+        saved_files.append(file_system)
     return saved_files
 
 # Add CORS middleware
