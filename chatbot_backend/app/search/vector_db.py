@@ -287,3 +287,6 @@ class ChromaManager:
         except Exception as e:
             print(f"Error clearing collection: {e}")
             return False
+
+
+chroma_db = ChromaManager(collection_name="my_documents", persist_directory="../data/vector_store")

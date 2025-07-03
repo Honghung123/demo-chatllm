@@ -2,7 +2,7 @@ import sqlite3
 from typing import List, Optional, Dict
 from schema.user import User
 
-DB_PATH = "app/database/db.sqlite3"
+DB_PATH = "database/db.sqlite3"
 
 class UserService: 
     @staticmethod

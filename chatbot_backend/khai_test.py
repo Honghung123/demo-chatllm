@@ -26,6 +26,7 @@ METADATA_FILE_PATH = "data/metadata/file_metadata.json"
 
 chroma_db = ChromaManager(collection_name="my_documents", persist_directory="data/vector_store")
 print("Total documents in ChromaDB:", len(chroma_db.get_all_documents()))
+# chroma_db.clear_collection()
 
 # # add python.pdf to ChromaDB
 # content = load_file(f'{DATA_DIR}/python.pdf')
@@ -77,8 +78,8 @@ print("Total documents in ChromaDB:", len(chroma_db.get_all_documents()))
 # doc_ids = chroma_db.add_documents(docs)
 
 
-list_files = get_list_file_names_by_user_and_role("user1", "hr")
-print(f"List of files for user1 and role hr: {list_files}")
-docs = chroma_db.search_relative_documents(query="learning java programming", n_results=10, filenames=list_files)
-print(f"Search results for 'learning java programming': {docs}")
+# list_files = get_list_file_names_by_user_and_role("user1", "hr")
+# print(f"List of files for user1 and role hr: {list_files}")
+# docs = chroma_db.search_relative_documents(query="learning java programming", n_results=10, filenames=list_files)
+# print(f"Search results for 'learning java programming': {docs}")
 
