@@ -21,7 +21,7 @@ email_validator==2.2.0
 et_xmlfile==2.0.0
 eval_type_backport==0.2.2
 faiss-cpu==1.11.0
-fastapi==0.115.2
+fastapi==0.115.9
 fastui==0.7.0
 filelock==3.18.0
 frozenlist==1.6.0

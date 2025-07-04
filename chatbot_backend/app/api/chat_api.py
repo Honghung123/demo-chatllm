@@ -43,7 +43,13 @@ aiModels = [
             "modelName": "mistral",
             "displayName": "Ollama - Mistral",
             "description": "Great for everyday tasks",
-        }, 
+        },
+{
+            "model": "llama3.1",
+            "modelName": "llama3.1",
+            "displayName": "Ollama - llama3.1",
+            "description": "Great for everyday tasks",
+        },
     ]
 
 @app.get("/ai-models", response_model=List[Dict[str, Any]])
