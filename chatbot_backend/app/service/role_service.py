@@ -1,8 +1,8 @@
 import sqlite3
 from typing import List, Optional, Dict
+from app.service.db_service import DB_PATH
 from schema.role import Role, RoleName
-
-DB_PATH = "database/db.sqlite3"
+ 
 class RoleService:  
     def _get_connection() -> sqlite3.Connection:
         """Get SQLite database connection"""

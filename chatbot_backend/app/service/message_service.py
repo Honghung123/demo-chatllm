@@ -1,11 +1,9 @@
 import sqlite3
 from typing import List, Optional, Dict
 from datetime import datetime
+from app.service.db_service import DB_PATH
 from schema.message import Message
-from uuid import UUID
-
-DB_PATH = "database/db.sqlite3"
-
+ 
 class MessageService: 
     def _get_connection() -> sqlite3.Connection:
         """Get SQLite database connection"""

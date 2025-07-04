@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Optional
 import uvicorn
 import os
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.model_provider import get_model_event_generator  
+from app.api.model_provider import ChatRequest, get_model_event_generator  
 from app.schema.conversation import Conversation
 from app.schema.file import FileSystem
 from app.schema.message import Message
@@ -44,8 +44,8 @@ aiModels = [
             "displayName": "Ollama - Mistral",
             "description": "Great for everyday tasks",
         },
-{
-            "model": "llama3.1",
+        {
+            "model": "ollama",
             "modelName": "llama3.1",
             "displayName": "Ollama - llama3.1",
             "description": "Great for everyday tasks",
@@ -102,15 +102,6 @@ def get_list_chat_histories(username: str):
 @app.get("/chat-histories/{userId}/{conversationId}", response_model=List[Message])
 async def get_chat_history(userId: str, conversationId: str):
     return MessageService.get_all_chat(userId, conversationId)
-
-class ChatRequest(BaseModel):
-    conversationId: str
-    userId: str
-    role: str
-    content: str
-    history: Optional[List[Dict[str, str]]] = None
-    model: str
-    modelName: str
  
 @app.post("/chat", response_model=Message)
 async def handle_chat(httpRequest: Request, request: ChatRequest):
@@ -118,7 +109,7 @@ async def handle_chat(httpRequest: Request, request: ChatRequest):
         event_generator = get_model_event_generator(request.model)
         # Trả về response dạng text/event-stream để client nhận realtime
         return StreamingResponse(event_generator(request, httpRequest), media_type="text/event-stream")
-    except Exception as e:
+    except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")
 
 

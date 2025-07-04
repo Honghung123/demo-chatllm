@@ -8,10 +8,12 @@ from tools.marketing.prompt import (
 )
 from ollama import Client
 
-client = Client(
-    host="http://192.168.128.1:11434"  # or another host if you're running Ollama elsewhere
-)
+OLLAMA_HOST="http://127.0.0.1:11434"
+OLLAMA_MODEL="mistral"
 
+client = Client(
+    host=OLLAMA_HOST
+)
 
 @mcp.tool(description="Analyze marketing data, sales and give insights")
 def analyze_sales(file_content: str) -> str:
@@ -21,7 +23,7 @@ def analyze_sales(file_content: str) -> str:
         {"role": "user", "content": file_content},
     ]
 
-    response = client.chat(model="llama3.1", messages=messages, stream=False)
+    response = client.chat(model=OLLAMA_MODEL, messages=messages, stream=False)
 
     return (
         response["message"]["content"]
@@ -45,7 +47,7 @@ def suggest_campaign(query: str, file_content: Optional[str] = None) -> str:
         {"role": "user", "content": user_message},
     ]
 
-    response = client.chat(model="llama3.1", messages=messages, stream=False)
+    response = client.chat(model="mistral", messages=messages, stream=False)
 
     return (
         response["message"]["content"]

@@ -15,9 +15,7 @@ from api.chat_api import start_api
  
 def seed_role_data(): 
     RoleService.create_table_if_not_exists()
-    RoleService.initialize_default_roles()
-    for role in RoleService.get_all():
-        print(role.name) 
+    RoleService.initialize_default_roles() 
 
 def seed_user_data(): 
     UserService.create_table_if_not_exists()

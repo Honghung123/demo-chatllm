@@ -1,10 +1,9 @@
 import sqlite3
 import os
 from typing import List, Optional
+from app.service.db_service import DB_PATH
 from schema.file import FileSystem
-
-DB_PATH = "database/db.sqlite3"
-
+ 
 class FileService:         
     def _get_connection() -> sqlite3.Connection:
         """Get SQLite database connection"""

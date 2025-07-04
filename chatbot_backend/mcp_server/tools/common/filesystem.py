@@ -4,7 +4,7 @@ import os
 from shared_mcp import mcp
 from search.vector_db import ChromaManager
 
-db = ChromaManager()
+db = ChromaManager(collection_name="my_documents", persist_directory="data/vector_store")
 
 # Import file_loader with error handling
 try:
@@ -17,7 +17,7 @@ except ImportError:
 
 
 @mcp.tool(
-    description="Read one or more files from the specified path, or use RAG to retrieve relevant content. Default path is 'mcp_server/files'. Filenames param is a list of filename, if there is only one file, this is an array of 1 element"
+    description="Read one or more files from the specified path, or use RAG to retrieve relevant content. Query is the content. Filenames param is a list of filename, if there is only one file, this is an array of 1 element"
 )
 def read_file(query: str, filenames: Optional[List[str]] = None) -> str:
     """
@@ -44,11 +44,11 @@ def read_file(query: str, filenames: Optional[List[str]] = None) -> str:
         - High CTR on Instagram campaigns
         - Best response to limited-time offers
         """
-    filenames = filenames or []
-    results: List[str] = db.search_relative_documents(
-        query=query, n_results=10, filenames=filenames
-    )
-    return "\n\n".join(results) if results else "No content found."
+    # filenames = filenames or []
+    # results: List[str] = db.search_relative_documents(
+    #     query=query, n_results=10, filenames=filenames
+    # )
+    # return "\n\n".join(results) if results else "No content found."
 
 
 @mcp.tool(
