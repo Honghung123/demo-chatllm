@@ -4,7 +4,7 @@ from datetime import datetime
 from schema.message import Message
 from uuid import UUID
 
-DB_PATH = "app/database/db.sqlite3"
+DB_PATH = "database/db.sqlite3"
 
 class MessageService: 
     def _get_connection() -> sqlite3.Connection:

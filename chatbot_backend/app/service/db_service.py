@@ -1,6 +1,6 @@
 import sqlite3
 
-DB_PATH = "app/database/db.sqlite3"
+DB_PATH = "database/db.sqlite3"
 
 def drop_all_tables():
     """

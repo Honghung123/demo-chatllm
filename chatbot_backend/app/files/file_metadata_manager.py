@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from typing import Optional
 
-METADATA_FILE_PATH = 'data/metadata/metadata.json'
+METADATA_FILE_PATH = '../data/metadata/metadata.json'
 
 def load_metadata(file_path: str = METADATA_FILE_PATH) -> dict:
     """Load metadata from a file.""" 

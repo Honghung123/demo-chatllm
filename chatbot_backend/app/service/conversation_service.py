@@ -2,7 +2,7 @@ import sqlite3
 from typing import List, Optional
 from schema.conversation import Conversation
 
-DB_PATH = "app/database/db.sqlite3"
+DB_PATH = "database/db.sqlite3"
 
 class ConversationService: 
     def _get_connection() -> sqlite3.Connection:

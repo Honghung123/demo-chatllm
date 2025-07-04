@@ -3,7 +3,7 @@ import os
 from typing import List, Optional
 from schema.file import FileSystem
 
-DB_PATH = "app/database/db.sqlite3"
+DB_PATH = "database/db.sqlite3"
 
 class FileService:         
     def _get_connection() -> sqlite3.Connection:

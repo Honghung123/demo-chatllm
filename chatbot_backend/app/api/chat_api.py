@@ -2,7 +2,7 @@
 from datetime import datetime 
 import random
 import uuid
-from fastapi import FastAPI, File, HTTPException, BackgroundTasks, Request, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, BackgroundTasks, Request, UploadFile
 from fastapi.responses import StreamingResponse 
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional 
@@ -18,7 +18,12 @@ from app.service.conversation_service import ConversationService
 from app.service.file_service import FileService
 from app.service.user_service import UserService
 from app.service.message_service import MessageService
+from app.files.file_metadata_manager import add_metadata
+from app.files.file_pre_processing import preprocess_text
+from app.search.document import Document
+from app.files.file_loader import load_file
 from utils.environment import SERVER_HOST, SERVER_PORT
+from app.search.vector_db import chroma_db
 
 app = FastAPI(
     title="Offline LLM API",
@@ -120,17 +125,70 @@ async def handle_chat(httpRequest: Request, request: ChatRequest):
 @app.post("/upload/{username}", response_model=List[FileSystem])
 async def upload_file(username: str, files: List[UploadFile] = File(...)):
     saved_files = []
-    user_dir = f"mcp_server/files/{username}" 
-    if not os.path.exists(user_dir):
-        os.makedirs(user_dir, exist_ok=True) 
+    files_dir = f"../data/files" 
+     
     for file in files:
-        fileNameInServer = str(uuid.uuid4())[:8]
         extension = file.filename.split(".")[-1]
-        file_path = os.path.join(user_dir, f"{fileNameInServer}.{extension}") 
+        file_name_in_server = f"{str(uuid.uuid4())[:8]}.{extension}"
+        file_path = os.path.join(files_dir, file_name_in_server) 
         contents = await file.read()
         with open(file_path, "wb") as f:
             f.write(contents) 
-        saved_files.append(FileSystem(name=fileNameInServer, orginal_name=file.filename, extension=extension, username=username))
+        
+        # Save file metadata
+        add_metadata(file_name=file_name_in_server, author=username, roles=[])
+        # embed file content into ChromaDB
+        contents = load_file(file_path)
+        chunks = preprocess_text(contents)  # Ensure contents are decoded to string
+        docs = []
+        for i, chunk in enumerate(chunks):
+            doc = Document(
+                id=uuid.uuid4(),
+                content=chunk,
+                metadata={
+                    "filename": file_name_in_server,
+                }
+            )
+            docs.append(doc)
+        chroma_db.add_documents(docs)
+        # save file to database
+        file_system = FileSystem(name=file_name_in_server, orginal_name=file.filename, extension=extension, username=username)
+        FileService.create(file=file_system)
+        saved_files.append(file_system)
+    return saved_files
+
+# upload file for admin
+@app.post("/upload", response_model=List[FileSystem])
+async def upload_file(files: List[UploadFile] = File(...), roles: List[str] = Form(...)):
+    saved_files = []
+    documents_dir = f"../data/files" 
+    for file in files:
+        extension = file.filename.split(".")[-1]
+        file_name_in_server = f"{str(uuid.uuid4())[:8]}.{extension}"
+        file_path = os.path.join(documents_dir, file_name_in_server) 
+        contents = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(contents)
+        # Save file metadata
+        add_metadata(file_name=file_name_in_server, author="admin", roles=roles)
+        # embed file content into ChromaDB
+        contents = load_file(file_path)
+        chunks = preprocess_text(contents)  # Ensure contents are decoded to string
+        docs = []
+        for i, chunk in enumerate(chunks):
+            doc = Document(
+                id=uuid.uuid4(),
+                content=chunk,
+                metadata={
+                    "filename": file_name_in_server,
+                }
+            )
+            docs.append(doc)
+        chroma_db.add_documents(docs)
+        # save file to database
+        file_system = FileSystem(name=file_name_in_server, orginal_name=file.filename, extension=extension, username="admin")
+        FileService.create(file=file_system)
+        saved_files.append(file_system)
     return saved_files
 
 # Add CORS middleware
