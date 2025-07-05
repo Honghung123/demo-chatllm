@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { UserType } from "@/types/user.type";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
@@ -27,8 +28,14 @@ export default function LoginPage() {
 		try {
 			const response = await handleLogin(username, password);
 			console.log(response);
+			const user: UserType = {
+				id: response!.id,
+				username: response!.username,
+				role: response!.role,
+				name: response!.username,
+			};
 			if (!response) throw new Error();
-			sessionStorage.setItem("user", JSON.stringify(response));
+			sessionStorage.setItem("user", JSON.stringify(user));
 			router.push("/chat");
 		} catch (err: any) {
 			toast("Login failed. Please try again.");

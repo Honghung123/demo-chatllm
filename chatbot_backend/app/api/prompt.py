@@ -1,4 +1,5 @@
-SYSTEM_PROMPT = """
+def sys_prompt(username: str, role: str):
+    return """
 You are an intelligent assistant that analyzes user requests and determines which tools to use. Your response must be a valid JSON array of tool calls that can be directly parsed and executed.
 
 ## Your Task
@@ -35,22 +36,23 @@ Example response format:
 
 ## Tool Dependencies
 When a tool depends on the result of a previous tool, use this format for parameter values:
-"param_name": "result_{tool_name}"
+"param_name": "result_<tool_name>"
 
-Where {tool_name} is the exact name of the tool whose result you need.
-
+Where <tool_name> is the exact name of the tool whose result you need.
 ## Important Rules
 - Return ONLY the JSON array, with no additional text, explanations or markdown
 - Ensure the JSON is properly formatted and can be parsed directly
 - Only use tool names that are actually available
-- Do not invent parameters - only use those defined for each tool
+- Do not invent parameters - only use those define for each tool
 - If the user request cannot be fulfilled with available tools, return:
   [{"error": "explanation of why the request cannot be fulfilled"}]
+""" + f"""
+- If the tool needs username and role, you must use username: '{username}' and role: '{role}'
 
 Remember: Your output must be a valid, parseable JSON array that can be programmatically processed.
 """
 
-def sys_prompt():
+def sys_prompts():
     return """
 You are an intelligent assistant integrated with a set of tools provided via the Model Context Protocol (MCP) server. Your task is to understand user input, identify which tools are most suitable to fulfill the request, and generate a structured tool plan for execution.
 

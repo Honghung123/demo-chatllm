@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from ollama import Client 
 from app.llm import mcp_client
 
-from app.api.prompt import SYSTEM_PROMPT, sys_prompt, user_prompt
+from app.api.prompt import sys_prompt
 
 from app.schema.message import Message
 from app.service.message_service import MessageService
@@ -15,6 +15,8 @@ from utils.environment import OLLAMA_BASE_URL
 class ChatRequest(BaseModel):
     conversationId: str
     userId: str
+    username: str
+    userRole: str
     role: str
     content: str
     history: Optional[List[Dict[str, str]]] = None
@@ -24,7 +26,7 @@ class ChatRequest(BaseModel):
 client = Client(
     host=OLLAMA_BASE_URL 
 )
-from google import genai
+# from google import genai
 
 def format_yield_content(content: str):
     return f"data: {json.dumps({'content': f'{content}\n\n\n'})}\n\n"
@@ -78,9 +80,9 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
     MessageService.create(Message(conversation_id=request.conversationId, user_id=request.userId, content=request.content, from_user=True))
     chatResponseMessage = ""
     historyMessage = MessageService.get_all_chat(request.userId, request.conversationId)
-    histories = [{"role": "user" if message.from_user else "assistant", "content": message.content} for message in historyMessage]
+    histories = [{"role": "user" if message.from_user else "assistant", "content": message.content} for message in historyMessage] 
     prompt = [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": sys_prompt(request.username, request.userRole)},
         *histories,
         {
             "role": "user",
@@ -112,8 +114,7 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         print(result)
         if (result.isError):
             yield format_yield_content(f"{displayToolMessage(toolMapper[tool_name], tool_params)} failed. Please try again.")
-            return
-        print(result) 
+            return 
         stream_gen = await save_response_to_dict(tool_name, result, storage)
         async for chunk in stream_gen:
             chatResponseMessage += chunk

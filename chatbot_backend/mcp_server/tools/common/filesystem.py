@@ -27,7 +27,7 @@ def search_file(user_input: str, username: str, role: str) -> List[str]:
     Returns:
         Combined content of matching documents as a single string
     """ 
-    filenames = get_list_file_names_by_user_and_role(username, role)
+    filenames = get_list_file_names_by_user_and_role(username, role)  
     results: List[str] = db.search_relative_documents(
         query=user_input, n_results=10, filenames=filenames
     )

@@ -5,7 +5,7 @@ from typing import Optional
 
 from utils.file_utils import get_root_path
 
-METADATA_FILE_PATH = f'{get_root_path()}/data/metadatas/metadata.json'
+METADATA_FILE_PATH = f'{get_root_path()}/data/metadata/metadata.json'
 
 def load_metadata(file_path: str = METADATA_FILE_PATH) -> dict:
     """Load metadata from a file.""" 
@@ -105,7 +105,7 @@ def update_category_per_user(file_name: str, user: str, category: str) -> None:
     save_metadata(metadatas)
 
 def get_list_file_names_by_user_and_role(user:str, role: str) -> list:
-    """Get a list of file names by user and role.""" 
+    """Get a list of file names by user and role."""  
     metadatas = load_metadata()
     file_names = []
     

@@ -18,7 +18,8 @@ class UserService:
         cursor = conn.cursor()
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
-            username TEXT PRIMARY KEY,
+            id UUID PRIMARY KEY,
+            username TEXT NOT NULL,
             password TEXT NOT NULL,
             role TEXT NOT NULL
         )
@@ -39,8 +40,8 @@ class UserService:
         data = user.to_sqlite_dict()
         cursor.execute(
             """
-            INSERT INTO users (username, password, role) 
-            VALUES (:username, :password, :role)
+            INSERT INTO users (id, username, password, role) 
+            VALUES (:id, :username, :password, :role)
             """, 
             data
         )
@@ -67,6 +68,7 @@ class UserService:
             user_data = dict(row)
             conn.close()
             return User(
+                id=user_data['id'],
                 username=user_data['username'],
                 password=user_data['password'],
                 role=user_data['role']
@@ -91,6 +93,7 @@ class UserService:
         for row in rows:
             user_data = dict(row)
             users.append(User(
+                id=user_data['id'],
                 username=user_data['username'],
                 password=user_data['password'],
                 role=user_data['role']

@@ -104,6 +104,8 @@ export function ChatMain({ user }: ChatMainProps) {
 		setIsChatResponding(true);
 		const request: ChatRequestType = {
 			userId: user.id,
+			username: user.username,
+			userRole: user.role,
 			conversationId: conversationId!,
 			role: userMessage.role,
 			content: userMessage.content,

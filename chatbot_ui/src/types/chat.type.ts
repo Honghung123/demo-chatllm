@@ -21,6 +21,8 @@ export type AIModel = {
 
 export type ChatRequestType = {
 	userId: string;
+	username: string;
+	userRole: string;
 	conversationId: string;
 	role: string;
 	content: string;
