@@ -39,7 +39,7 @@ export function ChatMain({ user }: ChatMainProps) {
 	const [selectedModel, setSelectedModel] = useState<AIModel | null>(null);
 	const [messages, setMessages] = useState<MessageType[]>([]);
 	const [isLoadingPage, setIsLoadingPage] = useState(true);
-	const [input, setInput] = useState("Who is the current president of the United States of America?");
+	const [input, setInput] = useState("Read sales.txt and suggest compaigns.");
 	const [isChatResponding, setIsChatResponding] = useState(false);
 	const [isTyping, setIsTyping] = useState(false);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -64,6 +64,7 @@ export function ChatMain({ user }: ChatMainProps) {
 			const chatHistory = await getChatHistory(user.id, payload.conversationId);
 			setMessages(chatHistory);
 			setConversationId(payload.conversationId!);
+			scrollToBottom();
 			setIsLoadingPage(false);
 		});
 		return () => {
@@ -83,14 +84,14 @@ export function ChatMain({ user }: ChatMainProps) {
 		}
 	};
 
-	useEffect(() => {
-		scrollToBottom();
-	}, [messages, isTyping]);
+	// useEffect(() => {
+	// 	scrollToBottom();
+	// }, [messages, isTyping]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!input.trim() || isChatResponding) return;
-
+		scrollToBottom();
 		const userMessage: MessageType = {
 			id: `${messages.length + 1}`,
 			role: "user",
@@ -290,7 +291,7 @@ export function ChatMain({ user }: ChatMainProps) {
 						/>
 						<div className="flex items-center justify-between w-full px-3 py-1">
 							<div className="flex">
-								<UploadFileModal>
+								<UploadFileModal user={user}>
 									<Button
 										type="button"
 										variant="ghost"

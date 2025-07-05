@@ -10,7 +10,10 @@ except ImportError:
     print("Warning: mcp_server.utils.file_loader could not be imported")
     FILE_LOADER_AVAILABLE = False
 
-@mcp.tool(description="Read a file from the specified file path, file path is optional and default is 'mcp_server/files'")
+@mcp.tool(
+    description="Read a file from the specified file path, file path is optional and default is 'mcp_server/files'",
+    progress_message="Đang đọc file..."
+)
 def read_file(file_name: str, root_path: str = "mcp_server/files") -> str:
     """Read a file from the specified file path, default is 'files/test.txt'"""
     try:
@@ -36,7 +39,10 @@ def read_file(file_name: str, root_path: str = "mcp_server/files") -> str:
     except Exception as e:
         return f"Error reading file {file_name}: {str(e)}"
 
-@mcp.tool(description="Write a file to the specified file path, default folder path is 'mcp_server/files'")
+@mcp.tool(
+    description="Write a file to the specified file path, default folder path is 'mcp_server/files'",
+    progress_message="Đang ghi file..."
+)
 def write_file(content: str, file_name: str, path: str = "mcp_server/files") -> str:
     """Write a file to the specified file path, default is 'mcp_server/files/test.txt'"""
     try:
@@ -51,7 +57,10 @@ def write_file(content: str, file_name: str, path: str = "mcp_server/files") -> 
     except Exception as e:
         return f"Error writing to file {path}: {str(e)}"
 
-@mcp.tool(description="List files in the specified path, default is 'mcp_server/files'")
+@mcp.tool(
+    description="List files in the specified path, default is 'mcp_server/files'",
+    progress_message="Đang liệt kê các file..."
+)
 def list_files(path: str = "mcp_server/files") -> str:
     """List files in the specified path, default is 'mcp_server/files'"""
     try:
@@ -60,7 +69,10 @@ def list_files(path: str = "mcp_server/files") -> str:
     except Exception as e:
         return f"Error listing files in {path}: {str(e)}"
 
-@mcp.tool(description="Create a file in the specified folder path, default folder is 'mcp_server/files'")
+@mcp.tool(
+    description="Create a file in the specified folder path, default folder is 'mcp_server/files'",
+    progress_message="Đang tạo file..."
+)
 def create_file(path: str, file_name: str) -> str:
     """Create a file"""
     try:  

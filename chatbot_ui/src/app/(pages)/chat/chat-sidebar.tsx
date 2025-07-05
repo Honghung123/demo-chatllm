@@ -67,7 +67,8 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
 		const unsubscribe = eventBus.on("uploadFiles", async (payload) => {
 			try {
 				const files = payload.files;
-				const response = await uploadFileToServer(user.username, files);
+				const roles = payload.roles;
+				const response = await uploadFileToServer(user.username, files, roles);
 				const existingFiles = [...listFilesRef.current];
 				existingFiles[1].listFiles.push(...response);
 				setListFiles(existingFiles);

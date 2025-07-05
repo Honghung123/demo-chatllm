@@ -5,8 +5,11 @@ import type React from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
-import { Upload, X, File, ImageIcon, FileText, Download, LoaderCircle } from "lucide-react";
+import { Upload, X, File, ImageIcon, FileText, Download, LoaderCircle, Star } from "lucide-react";
 import eventBus from "@/hooks/event-bus";
+import { RoleName, RoleType, UserType } from "@/types/user.type";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { getAllRoles } from "@/api/auth.api";
 
 interface UploadedFile {
 	file: File;
@@ -14,11 +17,13 @@ interface UploadedFile {
 	id: string;
 }
 
-export default function UploadFileModal({ children }: { children: React.ReactNode }) {
+export default function UploadFileModal({ children, user }: { children: React.ReactNode; user: UserType }) {
 	const [open, setOpen] = useState(false);
 	const [isProcessingUpload, setIsProcessingUpload] = useState(false);
 	const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	const [listRoles, setListRoles] = useState<RoleType[]>([]);
+	const [allowedRoles, setAllowedRoles] = useState<string[]>([user.role]);
 
 	const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const files = Array.from(event.target.files || []);
@@ -60,8 +65,24 @@ export default function UploadFileModal({ children }: { children: React.ReactNod
 
 	const handleUpload = () => {
 		setIsProcessingUpload(true);
-		eventBus.emit("uploadFiles", { files: uploadedFiles.map((f) => f.file) });
+		const roles = [...allowedRoles];
+		if (user.role === RoleName.ADMIN && !roles.includes(RoleName.ADMIN)) {
+			roles.push(RoleName.ADMIN);
+		}
+		eventBus.emit("uploadFiles", { files: uploadedFiles.map((f) => f.file), roles: roles });
 	};
+
+	useEffect(() => {
+		const fetchRoles = async () => {
+			const res = await getAllRoles();
+			setListRoles(res);
+		};
+		if (user.role === RoleName.ADMIN) {
+			fetchRoles();
+		} else {
+			return;
+		}
+	}, []);
 
 	useEffect(() => {
 		const unsubscribe = eventBus.on("confirmUploadFiles", async (payload) => {
@@ -91,6 +112,16 @@ export default function UploadFileModal({ children }: { children: React.ReactNod
 		const i = Math.floor(Math.log(bytes) / Math.log(k));
 		return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 	};
+
+	function handleSelectRoles(roles: string[]): void {
+		setAllowedRoles([...roles]);
+	}
+
+	const roleOptions = (listRoles || []).map((role) => ({
+		label: `${role.displayName}`,
+		value: role.id,
+		// icon: Star,
+	}));
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
@@ -161,6 +192,20 @@ export default function UploadFileModal({ children }: { children: React.ReactNod
 									</div>
 								))}
 							</div>
+						)}
+						{user.role === RoleName.ADMIN && (
+							<>
+								{roleOptions.length > 0 && (
+									<MultiSelect
+										options={roleOptions}
+										onValueChange={handleSelectRoles}
+										value={allowedRoles}
+										placeholder="Select roles to allow"
+										variant="secondary"
+										className="border border-gray-200 cursor-pointer"
+									/>
+								)}
+							</>
 						)}
 
 						{uploadedFiles.length > 0 && (

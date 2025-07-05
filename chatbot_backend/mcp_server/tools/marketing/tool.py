@@ -15,7 +15,12 @@ client = Client(
     host=OLLAMA_HOST
 )
 
-@mcp.tool(description="Analyze marketing data, sales and give insights")
+@mcp.tool(
+    description="Analyze marketing data, sales and give insights",  
+    annotations={
+        "title": "Analyze marketing data, sales and give insights"
+    }
+)
 def analyze_sales(file_content: str) -> str:
     """Analyze marketing data, sales and give insights"""
     messages = [
@@ -33,7 +38,10 @@ def analyze_sales(file_content: str) -> str:
 
 
 @mcp.tool(
-    description="Suggest marketing campaigns based on user query and optional sales/customer data"
+    description="Suggest marketing campaigns based on user query and optional sales/customer data", 
+    annotations={
+        "title": "Suggest marketing campaigns based on user query and optional sales/customer data"
+    }
 )
 def suggest_campaign(query: str, file_content: Optional[str] = None) -> str:
     """Suggest effective marketing campaigns based primarily on the query, with optional data"""
@@ -47,7 +55,7 @@ def suggest_campaign(query: str, file_content: Optional[str] = None) -> str:
         {"role": "user", "content": user_message},
     ]
 
-    response = client.chat(model="mistral", messages=messages, stream=False)
+    response = client.chat(model=OLLAMA_MODEL, messages=messages, stream=False)
 
     return (
         response["message"]["content"]
@@ -57,7 +65,10 @@ def suggest_campaign(query: str, file_content: Optional[str] = None) -> str:
 
 
 @mcp.tool(
-    description="Predict future sales trends from historical data or from a user quert"
+    description="Predict future sales trends from historical data or from a user query",
+    annotations={
+        "title": "Predict future sales trends from historical data or from a user query"
+    }
 )
 def predict_future(query: str, file_content: Optional[str] = None) -> str:
     """Predict future trends and performance from marketing and sales data"""
@@ -69,7 +80,7 @@ def predict_future(query: str, file_content: Optional[str] = None) -> str:
         {"role": "system", "content": system_prompt_predict_future()},
         {"role": "user", "content": user_message},
     ]
-    response = client.chat(model="llama3.1", messages=messages, stream=False)
+    response = client.chat(model=OLLAMA_MODEL, messages=messages, stream=False)
     return (
         response["message"]["content"]
         if "message" in response

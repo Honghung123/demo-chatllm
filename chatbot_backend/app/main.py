@@ -35,15 +35,15 @@ def seed_message_data():
 
 def seed_file_data(): 
     FileService.create_table_if_not_exists()
-    FileService.create(file=FileSystem(name="abds232s-2324.pdf", orginal_name="ke hoach 2025", extension="pdf", username="admin"))
-    FileService.create(file=FileSystem(name="rwrvvsd-23sb.docx", orginal_name="Docker introduction", extension="docx", username="admin"))
-    FileService.create(file=FileSystem(name="bpsdfs2-bc04.txt", orginal_name="Project proposal", extension="txt", username="admin"))
-    FileService.create(file=FileSystem(name="serfsfs-aa35.excel", orginal_name="My project.excel", extension="excel", username="humanresource"))
-    FileService.create(file=FileSystem(name="serfsfs-abce.pdf", orginal_name="IT Report.pdf", extension="pdf", username="it"))
-    FileService.create(file=FileSystem(name="abpopei-bc00.excel", orginal_name="Sales Report.excel", extension="excel", username="sales"))
-    FileService.create(file=FileSystem(name="abpopei-3132.txt", orginal_name="Legal Report.txt", extension="txt", username="legal"))
-    FileService.create(file=FileSystem(name="abccsdd-httt.excel", orginal_name="Marketing Report.excel", extension="excel", username="marketing"))
-    FileService.create(file=FileSystem(name="tet4t44-sfad.pptx", orginal_name="Finance Report.pptx", extension="pptx", username="finance"))
+    # FileService.create(file=FileSystem(name="abds232s-2324.pdf", orginal_name="ke hoach 2025", extension="pdf", username="admin"))
+    # FileService.create(file=FileSystem(name="rwrvvsd-23sb.docx", orginal_name="Docker introduction", extension="docx", username="admin"))
+    # FileService.create(file=FileSystem(name="bpsdfs2-bc04.txt", orginal_name="Project proposal", extension="txt", username="admin"))
+    # FileService.create(file=FileSystem(name="serfsfs-aa35.excel", orginal_name="My project.excel", extension="excel", username="humanresource"))
+    # FileService.create(file=FileSystem(name="serfsfs-abce.pdf", orginal_name="IT Report.pdf", extension="pdf", username="it"))
+    # FileService.create(file=FileSystem(name="abpopei-bc00.excel", orginal_name="Sales Report.excel", extension="excel", username="sales"))
+    # FileService.create(file=FileSystem(name="abpopei-3132.txt", orginal_name="Legal Report.txt", extension="txt", username="legal"))
+    # FileService.create(file=FileSystem(name="abccsdd-httt.excel", orginal_name="Marketing Report.excel", extension="excel", username="marketing"))
+    # FileService.create(file=FileSystem(name="tet4t44-sfad.pptx", orginal_name="Finance Report.pptx", extension="pptx", username="finance"))
      
 def seed_data():    
     drop_all_tables()

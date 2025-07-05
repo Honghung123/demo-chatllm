@@ -1,1 +1,60 @@
-{}
+{
+    "bdb855e1.txt": {
+        "author": "it",
+        "roles": [
+            "it"
+        ],
+        "category": {}
+    },
+    "c9ff30b2.txt": {
+        "author": "it",
+        "roles": [
+            "it"
+        ],
+        "category": {}
+    },
+    "56261776.xlsx": {
+        "author": "it",
+        "roles": [
+            "it"
+        ],
+        "category": {}
+    },
+    "63de1fb3.xlsx": {
+        "author": "it",
+        "roles": [
+            "it"
+        ],
+        "category": {}
+    },
+    "e9722d5f.txt": {
+        "author": "admin",
+        "roles": [
+            "admin"
+        ],
+        "category": {}
+    },
+    "17283000.txt": {
+        "author": "admin",
+        "roles": [
+            "marketing",
+            "legal",
+            "it",
+            "admin"
+        ],
+        "category": {}
+    },
+    "3c9174ca.pdf": {
+        "author": "admin",
+        "roles": [
+            "admin",
+            "finance",
+            "hr",
+            "it",
+            "legal",
+            "marketing",
+            "sales"
+        ],
+        "category": {}
+    }
+}

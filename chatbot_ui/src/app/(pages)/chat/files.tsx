@@ -10,6 +10,9 @@ export function getFileIcon(extension: string) {
 			return DocxSvg;
 		case "pdf":
 			return PdfSvg;
+		case "xlsx":
+		case "csv":
+			return ExcelSvg;
 		case "pptx":
 			return PptxSvg;
 		case "excel":

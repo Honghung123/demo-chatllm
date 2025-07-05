@@ -1,8 +1,18 @@
+from enum import Enum
 import sqlite3
-from typing import List, Optional, Dict
+from typing import List, Optional
 from app.service.db_service import DB_PATH
-from schema.role import Role, RoleName
+from schema.role import Role
  
+class RoleName(str, Enum):
+    ADMIN = "admin|Admin"
+    HR = "hr|Human Resource"
+    SALES = "sales|Sales"
+    MARKETING = "marketing|Marketing"
+    LEGAL = "legal|Legal"
+    FINANCE = "finance|Finance"
+    IT = "it|IT"
+
 class RoleService:  
     def _get_connection() -> sqlite3.Connection:
         """Get SQLite database connection"""
@@ -17,8 +27,8 @@ class RoleService:
         cursor = conn.cursor()
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS roles (
-            name TEXT PRIMARY KEY,
-            description TEXT
+            id TEXT PRIMARY KEY,
+            displayName TEXT NOT NULL
         )
         ''')
         conn.commit()
@@ -31,26 +41,19 @@ class RoleService:
         cursor = conn.cursor()
         
         # Get all role names from the enum
-        role_names = Role.get_all_role_names()
-        default_descriptions = {
-            "admin": "Administrator role with full permissions",
-            "hr": "Human Resources role with access to employee data",
-            "sales": "Sales role with access to client and sales data",
-            "marketing": "Marketing role with access to campaign data",
-            "legal": "Legal role with access to contract data",
-            "finance": "Finance role with access to financial data",
-            "it": "IT role with access to technical systems"
-        }
+        roles = [{
+            "id": role.value.split("|")[0],
+            "displayName": role.value.split("|")[1]
+        } for role in RoleName]  
         
         # Insert or update roles
-        for role_name in role_names:
-            description = default_descriptions.get(role_name, "")
+        for role in roles: 
             cursor.execute(
                 """
-                INSERT OR IGNORE INTO roles (name, description)
+                INSERT OR IGNORE INTO roles (id, displayName)
                 VALUES (?, ?)
                 """, 
-                (role_name, description)
+                (role['id'], role['displayName'])
             )
             
         conn.commit()
@@ -69,8 +72,8 @@ class RoleService:
         data = role.to_sqlite_dict()
         cursor.execute(
             """
-            INSERT OR REPLACE INTO roles (name, description) 
-            VALUES (:name, :description)
+            INSERT OR REPLACE INTO roles (id, displayName) 
+            VALUES (:id, :displayName)
             """, 
             data
         )
@@ -78,27 +81,27 @@ class RoleService:
         conn.close()
         
     @staticmethod
-    def get_by_name(role_name: str) -> Optional[Role]:
+    def get_by_id(role_id: str) -> Optional[Role]:
         """
-        Get a role by name
+        Get a role by id
         
         Args:
-            role_name: Role name to search for
+            role_id: Role id to search for
             
         Returns:
             Role object if found, None otherwise
         """
         conn = RoleService._get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM roles WHERE name = ?", (role_name,))
+        cursor.execute("SELECT * FROM roles WHERE id = ?", (role_id,))
         row = cursor.fetchone()
         
         if row:
             role_data = dict(row)
             conn.close()
             return Role(
-                name=role_data['name'],
-                description=role_data['description']
+                id=role_data['id'],
+                displayName=role_data['displayName']
             )
         conn.close()
         return None
@@ -113,28 +116,28 @@ class RoleService:
         """
         conn = RoleService._get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM roles ORDER BY name")
+        cursor.execute("SELECT * FROM roles ORDER BY id")
         rows = cursor.fetchall()
         
         roles = []
         for row in rows:
             role_data = dict(row)
             roles.append(Role(
-                name=role_data['name'],
-                description=role_data['description']
+                id=role_data['id'],
+                displayName=role_data['displayName'],
             ))
         
         conn.close()
         return roles
         
     @staticmethod
-    def update(role_name: str, description: str) -> bool:
+    def update(role_id: str, displayName: str) -> bool:
         """
-        Update a role's description
+        Update a role's name
         
         Args:
-            role_name: Name of the role to update
-            description: New description
+            role_id: Id of the role to update
+            name: New name
             
         Returns:
             True if role was updated, False if role was not found
@@ -142,8 +145,8 @@ class RoleService:
         conn = RoleService._get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE roles SET description = ? WHERE name = ?", 
-            (description, role_name)
+            "UPDATE roles SET displayName = ? WHERE id = ?", 
+            (displayName, role_id)
         )
         updated = cursor.rowcount > 0
         conn.commit()
@@ -151,56 +154,56 @@ class RoleService:
         return updated
         
     @staticmethod
-    def delete(role_name: str) -> bool:
+    def delete(role_id: str) -> bool:
         """
-        Delete a role by name
+        Delete a role by id
         
         Args:
-            role_name: Role name to delete
+            role_id: Id of the role to delete
             
         Returns:
             True if role was deleted, False if role was not found
         """
         conn = RoleService._get_connection()
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM roles WHERE name = ?", (role_name,))
+        cursor.execute("DELETE FROM roles WHERE id = ?", (role_id,))
         deleted = cursor.rowcount > 0
         conn.commit()
         conn.close()
         return deleted
     
     @staticmethod
-    def role_exists(role_name: str) -> bool:
+    def role_exists(role_id: str) -> bool:
         """
         Check if a role exists
         
         Args:
-            role_name: Role name to check
+            role_id: Id of the role to check
             
         Returns:
             True if role exists, False otherwise
         """
         conn = RoleService._get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT 1 FROM roles WHERE name = ?", (role_name,))
+        cursor.execute("SELECT 1 FROM roles WHERE id = ?", (role_id,))
         exists = cursor.fetchone() is not None
         conn.close()
         return exists
     
     @staticmethod
-    def validate_role(role_name: str) -> bool:
+    def validate_role(role_id: str) -> bool:
         """
-        Validate if a role name is both valid in the enum and exists in the database
+        Validate if a role id is both valid in the enum and exists in the database
         
         Args:
-            role_name: Role name to validate
+            role_id: Id of the role to validate
             
         Returns:
             True if role is valid, False otherwise
         """
-        # Check if the role name is valid in the enum
-        if not Role.is_valid_role(role_name):
+        # Check if the role id is valid in the enum
+        if not Role.is_valid_role(role_id):
             return False
         
         # Check if the role exists in the database
-        return RoleService.role_exists(role_name)
+        return RoleService.role_exists(role_id)

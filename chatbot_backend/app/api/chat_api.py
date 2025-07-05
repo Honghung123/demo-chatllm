@@ -1,6 +1,6 @@
 # app/api.py
 from datetime import datetime 
-import random
+import os
 import uuid
 from fastapi import FastAPI, File, Form, HTTPException, BackgroundTasks, Request, UploadFile
 from fastapi.responses import StreamingResponse 
@@ -13,9 +13,10 @@ from app.api.model_provider import ChatRequest, get_model_event_generator
 from app.schema.conversation import Conversation
 from app.schema.file import FileSystem
 from app.schema.message import Message
-from app.schema.role import RoleName
+from app.schema.role import Role
 from app.service.conversation_service import ConversationService
 from app.service.file_service import FileService
+from app.service.role_service import RoleName, RoleService
 from app.service.user_service import UserService
 from app.service.message_service import MessageService
 from app.files.file_metadata_manager import add_metadata
@@ -31,13 +32,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-aiModels = [    
-        {
-            "model": "gemini",
-            "modelName": "gemini-2.5-flash",
-            "displayName": "Gemini",
-            "description": "Our smartest model & more",
-        },
+aiModels = [
         {
             "model": "ollama",
             "modelName": "mistral",
@@ -67,6 +62,10 @@ async def login(request: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     print("Authenticated user:", user.to_response_dict())
     return user.to_response_dict()
+
+@app.get("/roles", response_model=List[Role])
+async def get_all_roles():
+    return RoleService.get_all()
  
 @app.get("/conversations/{userId}", response_model=List[Conversation])
 async def get_list_conversations(userId: str):
@@ -106,53 +105,19 @@ async def get_chat_history(userId: str, conversationId: str):
 @app.post("/chat", response_model=Message)
 async def handle_chat(httpRequest: Request, request: ChatRequest):
     try:
-        event_generator = get_model_event_generator(request.model)
+        event_generator = get_model_event_generator()
         # Trả về response dạng text/event-stream để client nhận realtime
         return StreamingResponse(event_generator(request, httpRequest), media_type="text/event-stream")
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")
 
-
+# upload file
 @app.post("/upload/{username}", response_model=List[FileSystem])
-async def upload_file(username: str, files: List[UploadFile] = File(...)):
+async def upload_files(username: str, files: List[UploadFile] = File(...), allowed_roles: List[str] = Form(...)):
     saved_files = []
-    files_dir = f"../data/files" 
-     
-    for file in files:
-        extension = file.filename.split(".")[-1]
-        file_name_in_server = f"{str(uuid.uuid4())[:8]}.{extension}"
-        file_path = os.path.join(files_dir, file_name_in_server) 
-        contents = await file.read()
-        with open(file_path, "wb") as f:
-            f.write(contents) 
-        
-        # Save file metadata
-        add_metadata(file_name=file_name_in_server, author=username, roles=[])
-        # embed file content into ChromaDB
-        contents = load_file(file_path)
-        chunks = preprocess_text(contents)  # Ensure contents are decoded to string
-        docs = []
-        for i, chunk in enumerate(chunks):
-            doc = Document(
-                id=uuid.uuid4(),
-                content=chunk,
-                metadata={
-                    "filename": file_name_in_server,
-                }
-            )
-            docs.append(doc)
-        chroma_db.add_documents(docs)
-        # save file to database
-        file_system = FileSystem(name=file_name_in_server, orginal_name=file.filename, extension=extension, username=username)
-        FileService.create(file=file_system)
-        saved_files.append(file_system)
-    return saved_files
-
-# upload file for admin
-@app.post("/upload", response_model=List[FileSystem])
-async def upload_file(files: List[UploadFile] = File(...), roles: List[str] = Form(...)):
-    saved_files = []
-    documents_dir = f"../data/files" 
+    documents_dir = f"data/files"   
+    if not os.path.exists(documents_dir):
+        os.makedirs(documents_dir)
     for file in files:
         extension = file.filename.split(".")[-1]
         file_name_in_server = f"{str(uuid.uuid4())[:8]}.{extension}"
@@ -161,9 +126,12 @@ async def upload_file(files: List[UploadFile] = File(...), roles: List[str] = Fo
         with open(file_path, "wb") as f:
             f.write(contents)
         # Save file metadata
-        add_metadata(file_name=file_name_in_server, author="admin", roles=roles)
+        if username == RoleName.ADMIN:
+            add_metadata(file_name=file_name_in_server, author=username, roles=allowed_roles) 
+        else:
+            add_metadata(file_name=file_name_in_server, author=username, roles=[]) 
         # embed file content into ChromaDB
-        contents = load_file(file_path)
+        contents = load_file(file_path) 
         chunks = preprocess_text(contents)  # Ensure contents are decoded to string
         docs = []
         for i, chunk in enumerate(chunks):
@@ -174,10 +142,10 @@ async def upload_file(files: List[UploadFile] = File(...), roles: List[str] = Fo
                     "filename": file_name_in_server,
                 }
             )
-            docs.append(doc)
+            docs.append(doc) 
         chroma_db.add_documents(docs)
         # save file to database
-        file_system = FileSystem(name=file_name_in_server, orginal_name=file.filename, extension=extension, username="admin")
+        file_system = FileSystem(name=file_name_in_server, orginal_name=file.filename, extension=extension, username=username)
         FileService.create(file=file_system)
         saved_files.append(file_system)
     return saved_files
@@ -196,73 +164,4 @@ def start_api():
     host = SERVER_HOST
     port = int(SERVER_PORT) 
     uvicorn.run(app, host=host, port=port)
-
-"""
-@app.post("/search", response_model=SearchResponse)
-async def search(request: SearchRequest):
-    try:
-        results = retriever.search(request.query, request.top_k)
-        return SearchResponse(results=results)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Search error: {str(e)}")
-
-@app.post("/files/index", response_model=IndexFilesResponse)
-async def index_files(request: IndexFilesRequest):
-    try:
-        # Count files before indexing
-        docs_dir = "data/documents"
-        file_count = 0
-        for root, _, files in os.walk(docs_dir):
-            for file in files:
-                if file.lower().endswith(('.pdf', '.docx', '.pptx', '.doc', '.ppt')) and not file.startswith('.'):
-                    file_count += 1
-        
-        # Index files
-        success = retriever.index_files(force_reindex=request.force_reindex)
-        
-        if success:
-            return IndexFilesResponse(
-                success=True,
-                message=f"Successfully indexed {file_count} files",
-                file_count=file_count
-            )
-        else:
-            return IndexFilesResponse(
-                success=False,
-                message="No files were indexed",
-                file_count=0
-            )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Indexing error: {str(e)}")
-
-@app.post("/agent/chat", response_model=AgentResponse)
-async def agent_chat(request: AgentRequest):
-    try:
-        # Get or create agent instance
-        session_id = request.session_id
-        if not session_id or session_id not in agent_instances:
-            agent = AdvancedMemoryAgent()
-            session_id = agent.session_id
-            agent_instances[session_id] = agent
-        else:
-            agent = agent_instances[session_id]
-        
-        # Process with agent
-        response = await agent.run_conversation(request.query)
-        
-        return AgentResponse(
-            response=response,
-            session_id=session_id
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
-
-@app.get("/agent/sessions/{session_id}/stats")
-async def get_agent_memory_stats(session_id: str):
-    if session_id not in agent_instances:
-        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
-    
-    agent = agent_instances[session_id]
-    stats = agent.get_memory_stats()
-    return {"session_id": session_id, "stats": stats}
-"""
+ 

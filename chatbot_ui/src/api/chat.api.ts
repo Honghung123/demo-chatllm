@@ -54,10 +54,13 @@ export const getAllProvidedFiles = async (username: string) => {
 	return res.data;
 };
 
-export const uploadFileToServer = async (username: string, files: File[]) => {
+export const uploadFileToServer = async (username: string, files: File[], roles: string[]) => {
 	const formData = new FormData();
 	for (let i = 0; i < files.length; i++) {
 		formData.append("files", files[i]);
+	}
+	for (let i = 0; i < roles.length; i++) {
+		formData.append("allowed_roles", roles[i]);
 	}
 	try {
 		const res = await myAxios.post<FileType[]>(`/upload/${username}`, formData, {

@@ -3,6 +3,7 @@ from typing import Optional
 from PyPDF2 import PdfReader
 from pptx import Presentation
 import docx
+import openpyxl
 
 def load_pdf(file_path: str) -> Optional[str]:
     """Đọc nội dung từ file PDF."""
@@ -49,8 +50,23 @@ def load_txt(file_path: str) -> Optional[str]:
         print(f"Error reading TXT: {e}")
         return None
 
+def load_xlsx(file_path: str) -> Optional[str]:
+    """Đọc nội dung từ file XLSX."""
+    try:
+        wb = openpyxl.load_workbook(file_path, data_only=True)
+        text = ""
+        for sheet in wb.worksheets:
+            text += f"Sheet: {sheet.title}\n"
+            for row in sheet.iter_rows(values_only=True):
+                text += "\t".join([str(cell) if cell is not None else "" for cell in row]) + "\n"
+            text += "\n"
+        return text
+    except Exception as e:
+        print(f"Error reading XLSX: {e}")
+        return None
+
 def load_file(file_path: str) -> Optional[str]:
-    """Tự động nhận diện và đọc nội dung file PDF, DOCX, PPTX, TXT."""
+    """Read file content from PDF, DOCX, PPTX, TXT, XLSX.""" 
     if file_path.lower().endswith(".pdf"):
         return load_pdf(file_path)
     elif file_path.lower().endswith(".docx"):
@@ -59,6 +75,8 @@ def load_file(file_path: str) -> Optional[str]:
         return load_pptx(file_path)
     elif file_path.lower().endswith(".txt"):
         return load_txt(file_path)
+    elif file_path.lower().endswith(".xlsx"):
+        return load_xlsx(file_path)
     else:
         print("Unsupported file format.")
         return None

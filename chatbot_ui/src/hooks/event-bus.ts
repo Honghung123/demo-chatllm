@@ -1,6 +1,6 @@
 export interface ChatEventMap {
 	changeConversation: { conversationId: string };
-	uploadFiles: { files: File[] };
+	uploadFiles: { files: File[]; roles: string[] };
 	confirmUploadFiles: { result: boolean; error?: Error };
 	// thêm các event khác...
 }
