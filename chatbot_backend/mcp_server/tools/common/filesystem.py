@@ -1,16 +1,16 @@
 # filesystem.py
 from typing import List, Optional
 import os
-from file_metadata_manager import get_list_file_names_by_user_and_role
 from shared_mcp import mcp
 from search.vector_db import ChromaManager
+from utils.file_metadata_manager import get_list_file_names_by_user_and_role
 from utils.file_utils import get_root_path
 from utils.file_loader import load_file
 
 db = ChromaManager(collection_name="my_documents", persist_directory=f"{get_root_path()}/data/vector_store")
  
 @mcp.tool(
-    description="Search related files based on user_input(the summary prompt of user). Return a list of file names. Example: ['Q2 Sales Report.txt', 'user_guide.txt']", 
+    description="Search related files based on user_input(the summary prompt of user). Return a list of file names, with the given username and role. Example: ['Q2 Sales Report.txt', 'user_guide.txt']", 
     annotations={
         "title": "Searching file and getting related files based on user input"
     }
