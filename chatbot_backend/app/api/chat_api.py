@@ -124,7 +124,7 @@ async def upload_files(username: str, files: List[UploadFile] = File(...), allow
         with open(file_path, "wb") as f:
             f.write(contents)
         # Save file metadata
-        if username == "admin":
+        if username != "admin":
             allowed_roles = []
         # embed file content into ChromaDB
         contents = load_file(file_path) 

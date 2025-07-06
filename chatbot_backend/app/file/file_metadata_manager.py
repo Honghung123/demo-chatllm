@@ -4,8 +4,9 @@ from datetime import datetime
 from typing import List, Optional
 
 from app.schema.file import FileSystem
+from utils.file_utils import get_root_path
 
-METADATA_FILE_PATH = os.path.join(os.path.dirname(__file__), '../../data/metadatas/metadata.json')
+METADATA_FILE_PATH = f'{get_root_path()}/data/metadatas/metadata.json'
 
 def load_metadata(file_path: str = METADATA_FILE_PATH) -> dict:
     """Load metadata from a file.""" 
@@ -63,11 +64,11 @@ def delete_metadata(file_name: str) -> None:
     
     save_metadata(metadatas)
 
-def update_metadata(file_name: str, original_name: str, roles: list) -> None:
+def update_metadata(file_name: str, original_name: str) -> None:
     """
         Update metadata for a file.
         How to use:
-            update_metadata("file1.pdf", original_name="abcxyz.pdf" , roles=["admin", "user"])
+            update_metadata("file1.pdf", original_name="abcxyz.pdf")
     """
     
     metadatas = load_metadata()
@@ -75,7 +76,6 @@ def update_metadata(file_name: str, original_name: str, roles: list) -> None:
     if file_name not in metadatas:
         raise KeyError(f"No metadata found for file: {file_name}")
     
-    metadatas[file_name]['roles'] = roles
     metadatas[file_name]['original_name'] = original_name
 
     save_metadata(metadatas)

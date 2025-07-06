@@ -196,15 +196,17 @@ class ChromaManager:
             
             search_results = []
             for i, doc_id in enumerate(results['ids'][0]):
-                search_results.append({
-                    'id': doc_id,
-                    'document': Document(
-                        id=uuid.UUID(doc_id),
-                        content=results['documents'][0][i],
-                        metadata=results['metadatas'][0][i]
-                    ),
-                    'distance': results['distances'][0][i]
-                })
+                # Check if the distance is within the threshold (1.2)
+                if results['distances'][0][i] <= 1.2:
+                    search_results.append({
+                        'id': doc_id,
+                        'document': Document(
+                            id=uuid.UUID(doc_id),
+                            content=results['documents'][0][i],
+                            metadata=results['metadatas'][0][i]
+                        ),
+                        'distance': results['distances'][0][i]
+                    })
             
             # Just for debugging, you can uncomment the following lines to print results
             # for result in search_results:
@@ -286,4 +288,4 @@ class ChromaManager:
             return True
         except Exception as e:
             print(f"Error clearing collection: {e}")
-            return False
+            return False 
