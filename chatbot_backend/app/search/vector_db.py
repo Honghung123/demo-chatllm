@@ -1,11 +1,13 @@
 import chromadb
 from typing import List, Dict, Optional, Union
 import uuid
+import os
 
 from app.search.document import Document
+from utils.file_utils import get_root_path
 
 class ChromaManager:
-    def __init__(self, collection_name: str = "my_documents", persist_directory: str = "data/vector_store"):
+    def __init__(self, collection_name: str = "my_documents", persist_directory: str = "data/vector_db"):
         """
         Initialize ChromaDB client and collection
         
@@ -170,6 +172,58 @@ class ChromaManager:
         except Exception as e:
             print(f"Error deleting documents: {e}")
             return False
+
+    def get_all_documents(self) -> List[Document]:
+        """
+        Get all documents in the collection
+        
+        Returns:
+            List of dictionaries with document IDs and Document objects
+        """
+        try:
+            result = self.collection.get()
+            documents = []
+            for i, doc_id in enumerate(result['ids']):
+                documents.append(
+                    Document(
+                        id=uuid.UUID(doc_id),
+                        content=result['documents'][i],
+                        metadata=result['metadatas'][i]
+                    )
+                )
+            return documents
+        except Exception as e:
+            print(f"Error getting all documents: {e}")
+            return []
+    
+    def filter_documents(self, filenames: list = []) -> List[Document]:
+        """
+        Filter documents by metadata
+        
+        Args:
+            where: Metadata filter conditions
+            
+        Returns:
+            List of dictionaries with filtered documents
+        """
+        try:
+            where = {}
+            if filenames:
+                where['filename'] = {'$in': filenames}
+            result = self.collection.get(where=where)
+            documents = []
+            for i, doc_id in enumerate(result['ids']):
+                documents.append(
+                    Document(
+                        id=uuid.UUID(doc_id),
+                        content=result['documents'][i],
+                        metadata=result['metadatas'][i]
+                    )
+                )
+            return documents
+        except Exception as e:
+            print(f"Error filtering documents: {e}")
+            return []
     
     def search_relative_documents(self, query: str, n_results: int = 10, filenames: list = []) -> List[str]:
         """
@@ -210,6 +264,8 @@ class ChromaManager:
             # for result in search_results:
             #     print(f"Document ID: {result['id']}, Content: {result['document']}..., Distance: {result['distance']:.4f}")
 
+            # remove distance > 1.2
+            search_results = [doc for doc in search_results if doc['distance'] <= 1.2]
             list_filenames = [doc['document'].metadata.get('filename', '') for doc in search_results]
             list_filenames = list(dict.fromkeys(f for f in list_filenames if f.strip())) # Remove duplicates and empty strings
             return list_filenames
@@ -217,60 +273,6 @@ class ChromaManager:
             print(f"Error searching documents: {e}")
             return []
 
-    def get_all_documents(self) -> List[Dict]:
-        """
-        Get all documents in the collection
-        
-        Returns:
-            List of dictionaries with document IDs and Document objects
-        """
-        try:
-            result = self.collection.get()
-            documents = []
-            for i, doc_id in enumerate(result['ids']):
-                documents.append({
-                    'id': doc_id,
-                    'document': Document(
-                        id=uuid.UUID(doc_id),
-                        content=result['documents'][i],
-                        metadata=result['metadatas'][i]
-                    )
-                })
-            return documents
-        except Exception as e:
-            print(f"Error getting all documents: {e}")
-            return []
-    
-    def filter_documents(self, filenames: list = []) -> List[Dict]:
-        """
-        Filter documents by metadata
-        
-        Args:
-            where: Metadata filter conditions
-            
-        Returns:
-            List of dictionaries with filtered documents
-        """
-        try:
-            where = {}
-            if filenames:
-                where['filename'] = {'$in': filenames}
-            result = self.collection.get(where=where)
-            documents = []
-            for i, doc_id in enumerate(result['ids']):
-                documents.append({
-                    'id': doc_id,
-                    'document': Document(
-                        id=uuid.UUID(doc_id),
-                        content=result['documents'][i],
-                        metadata=result['metadatas'][i]
-                    )
-                })
-            return documents
-        except Exception as e:
-            print(f"Error filtering documents: {e}")
-            return []
-    
     def clear_collection(self) -> bool:
         """
         Clear all documents from the collection
@@ -289,4 +291,5 @@ class ChromaManager:
             return False
 
 
-chroma_db = ChromaManager(collection_name="my_documents", persist_directory="../data/vector_store")
+vector_store_path = f"{get_root_path()}/data/vector_db"
+chroma_db = ChromaManager(collection_name="my_documents", persist_directory=vector_store_path)

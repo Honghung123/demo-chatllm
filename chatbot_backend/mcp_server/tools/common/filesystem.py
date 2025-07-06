@@ -7,7 +7,7 @@ from utils.file_metadata_manager import get_list_file_names_by_user_and_role
 from utils.file_utils import get_root_path
 from utils.file_loader import load_file
 
-db = ChromaManager(collection_name="my_documents", persist_directory=f"{get_root_path()}/data/vector_store")
+db = ChromaManager(collection_name="my_documents", persist_directory=f"{get_root_path()}/data/vector_db")
  
 @mcp.tool(
     description="Search related files based on user_input(the summary prompt of user). Return a list of file names, with the given username and role. Example: ['Q2 Sales Report.txt', 'user_guide.txt']", 

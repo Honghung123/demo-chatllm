@@ -19,10 +19,10 @@ from app.service.file_service import FileService
 from app.service.role_service import RoleName, RoleService
 from app.service.user_service import UserService
 from app.service.message_service import MessageService
-from app.files.file_metadata_manager import add_metadata
-from app.files.file_pre_processing import preprocess_text
+from app.file.file_pre_processing import preprocess_text
+from app.file.file_loader import load_file
 from app.search.document import Document
-from app.files.file_loader import load_file
+from utils.file_utils import get_root_path
 from utils.environment import SERVER_HOST, SERVER_PORT
 from app.search.vector_db import chroma_db
 
@@ -85,7 +85,7 @@ class ListFileResponse(BaseModel):
 
 @app.get("/files/{username}", response_model=List[ListFileResponse])
 def get_list_chat_histories(username: str):
-    system_files = FileService.get_by_username(RoleName.ADMIN)
+    system_files = FileService.get_by_username("admin")
     personal_files = FileService.get_by_username(username)
     return [
         { 
@@ -114,10 +114,8 @@ async def handle_chat(httpRequest: Request, request: ChatRequest):
 # upload file
 @app.post("/upload/{username}", response_model=List[FileSystem])
 async def upload_files(username: str, files: List[UploadFile] = File(...), allowed_roles: List[str] = Form(...)):
-    saved_files = []
-    documents_dir = f"data/files"   
-    if not os.path.exists(documents_dir):
-        os.makedirs(documents_dir)
+    saved_files : List[FileSystem] = []
+    documents_dir = f"{get_root_path()}/data/files"
     for file in files:
         extension = file.filename.split(".")[-1]
         file_name_in_server = f"{str(uuid.uuid4())[:8]}.{extension}"
@@ -126,10 +124,8 @@ async def upload_files(username: str, files: List[UploadFile] = File(...), allow
         with open(file_path, "wb") as f:
             f.write(contents)
         # Save file metadata
-        if username == RoleName.ADMIN:
-            add_metadata(file_name=file_name_in_server, author=username, roles=allowed_roles) 
-        else:
-            add_metadata(file_name=file_name_in_server, author=username, roles=[]) 
+        if username == "admin":
+            allowed_roles = []
         # embed file content into ChromaDB
         contents = load_file(file_path) 
         chunks = preprocess_text(contents)  # Ensure contents are decoded to string

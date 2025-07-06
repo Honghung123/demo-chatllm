@@ -5,7 +5,7 @@ import uuid
 from search.document import Document
 
 class ChromaManager:
-    def __init__(self, collection_name: str = "my_documents", persist_directory: str = "data/vector_store"):
+    def __init__(self, collection_name: str = "my_documents", persist_directory: str = "data/vector_db"):
         """
         Initialize ChromaDB client and collection
         

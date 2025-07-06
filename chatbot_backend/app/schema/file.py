@@ -1,26 +1,22 @@
-from datetime import datetime 
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
-from uuid import UUID, uuid4
+from datetime import datetime
+from typing import Union
+from uuid import uuid4
+
+from pydantic import BaseModel, Field, field_validator
 
 class FileSystem(BaseModel):
-    id: UUID = Field(default_factory=uuid4)
     name: str
-    orginal_name: str 
+    orginal_name: str
     extension: str
     username: str
-    timestamp: datetime = Field(default_factory=datetime.now) 
-        
-    def to_sqlite_dict(self) -> Dict[str, Any]:
-        """Convert the model to a dictionary suitable for SQLite insertion"""
-        return {
-            "id": str(self.id),
-            "name": self.name,
-            "orginal_name": self.orginal_name,
-            "extension": self.extension,
-            "username": self.username,
-            "timestamp": self.timestamp.isoformat()
-        }
+    timestamp: datetime = Field(default_factory=datetime.now)
+
+    @field_validator("timestamp", mode="before")
+    @classmethod
+    def parse_timestamp(cls, v: Union[str, datetime]) -> datetime:
+        if isinstance(v, str):
+            return datetime.fromisoformat(v)
+        return v
     
     @classmethod
     def generate_filename(cls, original_name: str) -> str:
