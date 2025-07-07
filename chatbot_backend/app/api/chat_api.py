@@ -85,7 +85,8 @@ class ListFileResponse(BaseModel):
 
 @app.get("/files/{username}", response_model=List[ListFileResponse])
 def get_list_chat_histories(username: str):
-    system_files = FileService.get_by_username("admin")
+    role = UserService.get_by_username(username).role
+    system_files = FileService.get_system_files(role)
     personal_files = FileService.get_by_username(username)
     return [
         { 
@@ -118,8 +119,19 @@ async def upload_files(username: str, files: List[UploadFile] = File(...), allow
     documents_dir = f"{get_root_path()}/data/files"
     for file in files:
         extension = file.filename.split(".")[-1]
-        file_name_in_server = f"{str(uuid.uuid4())[:8]}.{extension}"
-        file_path = os.path.join(documents_dir, file_name_in_server) 
+        file_name_in_server = file.filename
+        # Lưu tên file gốc để tái sử dụng trong vòng lặp
+        original_base_name, ext = os.path.splitext(file_name_in_server)
+        file_name_in_server = original_base_name + ext
+        file_path = os.path.join(documents_dir, file_name_in_server)
+        accumulator = 1
+        while os.path.exists(file_path):
+            # Tạo tên mới với số thứ tự
+            file_name_in_server = f"{original_base_name}({accumulator}){ext}"
+            file_path = os.path.join(documents_dir, file_name_in_server)
+            accumulator += 1
+        
+        # Save the file to the filesystem
         contents = await file.read()
         with open(file_path, "wb") as f:
             f.write(contents)
@@ -141,8 +153,8 @@ async def upload_files(username: str, files: List[UploadFile] = File(...), allow
             docs.append(doc) 
         chroma_db.add_documents(docs)
         # save file to database
-        file_system = FileSystem(name=file_name_in_server, orginal_name=file.filename, extension=extension, username=username)
-        FileService.create(file=file_system)
+        file_system = FileSystem(name=file_name_in_server, orginal_name=file_name_in_server, extension=extension, username=username)
+        FileService.create(file=file_system, roles=allowed_roles)
         saved_files.append(file_system)
     return saved_files
 

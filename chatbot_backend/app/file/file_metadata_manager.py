@@ -117,14 +117,14 @@ def get_list_file_names_by_user_and_role(user:str, role: str) -> list:
     return file_names
 
 # file uploads by admin are considered system files
-def get_list_system_files() -> List[FileSystem]:
+def get_list_system_files(role: str) -> List[FileSystem]:
     """Get a list of all file names in the metadata."""
     
     metadatas = load_metadata()
     files : List[FileSystem] = []
 
     for file_name, metadata in metadatas.items():
-        if metadata.get('username') == 'admin':
+        if metadata.get('username') == 'admin' and (role == "admin" or role in metadata.get("roles", [])):
             files.append(
                 FileSystem(
                     name=file_name,
@@ -143,6 +143,10 @@ def get_list_personal_files(user: str) -> List[FileSystem]:
     
     metadatas = load_metadata()
     files : List[FileSystem] = []
+
+    # If the user is admin, return empty list, because all admin's files are considered system files
+    if(user == "admin"):
+        return files
     
     for file_name, metadata in metadatas.items():
         if metadata.get('username') == user:

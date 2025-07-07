@@ -1,6 +1,6 @@
 import os
 from typing import List, Optional
-from app.file.file_metadata_manager import get_list_personal_files, add_metadata, delete_metadata, update_metadata
+from app.file.file_metadata_manager import get_list_personal_files, add_metadata, delete_metadata, get_list_system_files
 from utils.file_utils import get_root_path
 from schema.file import FileSystem
 from app.search.vector_db import chroma_db
@@ -32,6 +32,11 @@ class FileService:
         return get_list_personal_files(username)
     
     @staticmethod
+    def get_system_files(role: str) -> List[FileSystem]:
+        """Get all system files for a specific role."""
+        return get_list_system_files(role)
+    
+    @staticmethod
     def delete(file_name: str) -> bool:
         """
         Delete a file entry from the metadata.json and remove the file from the filesystem.
@@ -55,25 +60,25 @@ class FileService:
         
         return True
     
-    # replace the original_name in metadata
-    @staticmethod
-    def rename_file(file_name_in_system: str, new_name: str) -> bool:
-        """
-        Rename a file entry in the metadata.json and rename the file in the filesystem.
+    # # replace the original_name in metadata
+    # @staticmethod
+    # def rename_file(file_name_in_system: str, new_name: str) -> bool:
+    #     """
+    #     Rename a file entry in the metadata.json and rename the file in the filesystem.
 
-        Args:
-            file_name_in_system (str): The current name of the file in the system
-            new_name (str): The new display name for the file (replace the original_name in metadata)
+    #     Args:
+    #         file_name_in_system (str): The current name of the file in the system
+    #         new_name (str): The new display name for the file (replace the original_name in metadata)
         
-        Returns:
-            bool: True if file was renamed successfully, False otherwise
-        """
-        # Rename file metadata
-        update_metadata(
-            file_name=file_name_in_system,
-            original_name=new_name
-        )
-        return True
+    #     Returns:
+    #         bool: True if file was renamed successfully, False otherwise
+    #     """
+    #     # Rename file metadata
+    #     update_metadata(
+    #         file_name=file_name_in_system,
+    #         original_name=new_name
+    #     )
+    #     return True
     
     
     
