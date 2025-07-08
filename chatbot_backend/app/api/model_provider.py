@@ -29,35 +29,51 @@ client = Client(
 # from google import genai
 
 def format_yield_content(content: str):
-    return f"data: {json.dumps({'content': f'{content}\n\n\n'})}\n\n"
+    return f"data: {json.dumps({'content': f'{content}\n\n\n'})}\n\n"  
 
-def parse_tools_to_call(response_text: str):
+def parse_response_text(response_text: str):
+    if "```json" in response_text:
+        json_content = response_text.split("```json")[1].split("```")[0].strip()
+        response_text = json_content
+    elif "```" in response_text:
+        json_content = response_text.split("```")[1].split("```")[0].strip()
+        response_text = json_content
+    
+    return json.loads(response_text)
+
+def determine_message_type(data: Any): 
+    if isinstance(data, list):
+        return "list"
+    elif isinstance(data, dict): 
+        if "message" in data:
+            return "message"
+        else:
+            return "error"
+    else:
+        return "error"
+
+def parse_tools_to_call(data: Any):
     try:
         # Strip any markdown formatting if present
-        if "```json" in response_text:
-            json_content = response_text.split("```json")[1].split("```")[0].strip()
-            response_text = json_content
-        elif "```" in response_text:
-            json_content = response_text.split("```")[1].split("```")[0].strip()
-            response_text = json_content
+        # if "```json" in response_text:
+        #     json_content = response_text.split("```json")[1].split("```")[0].strip()
+        #     response_text = json_content
+        # elif "```" in response_text:
+        #     json_content = response_text.split("```")[1].split("```")[0].strip()
+        #     response_text = json_content
             
-        data = json.loads(response_text)
-        if isinstance(data, list):
-            # Handle list of tools
-            tools = []
-            for tool_data in data:
-                tool_name = tool_data.get("tool")
-                tool_args = tool_data.get("params", {})
-                tool_order = tool_data.get("order")
-                if tool_name:
-                    tools.append({"tool": tool_name, "params": tool_args, "order": tool_order})
-            return tools
-        else:
-            print("Error, must be a list of tools")
-            return []
+        # data = json.loads(response_text)
+        # if isinstance(data, list): 
+        tools = []
+        for tool_data in data:
+            tool_name = tool_data.get("tool")
+            tool_args = tool_data.get("params", {})
+            tool_order = tool_data.get("order")
+            if tool_name:
+                tools.append({"tool": tool_name, "params": tool_args, "order": tool_order})
+        return tools 
     except Exception as e:
-        print(f"Error parsing tool call: {str(e)}")
-        print(f"Response text was: {response_text}")
+        print(f"Error parsing tool call") 
         return []
 
 # Hàm generator async để stream dữ liệu theo SSE
@@ -94,31 +110,43 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         messages=prompt,
         stream=False,
         tools=formatted_tools,  
-    )  
-    parsed_tools = parse_tools_to_call(res.message.content) 
-    print(parsed_tools)
-    # async for step in stream_tool_plan_steps(parsed_tools):
-    #     chatResponseMessage += step
-    #     yield step
-    storage = {}
-    for tool in parsed_tools:
-        tool_order = tool["order"]
-        tool_name = tool["tool"]
-        tool_args = tool["params"]
-        tool_params = get_tool_params(tool_args, storage)
-        content = f"🚀 Step {tool_order}: {displayToolMessage(toolMapper[tool_name], tool_params)}"
-        yield format_yield_content(content)
+    )
+    parsed_response = parse_response_text(res.message.content)
+    print(parsed_response)
+    message_type = determine_message_type(parsed_response)
+    if message_type == "error":
+        yield format_yield_content(parsed_response['error']) 
         await asyncio.sleep(0.1)
-        chatResponseMessage += content
-        result = await mcp_client.call_tool(tool_name, tool_params)
-        print(result)
-        if (result.isError):
-            yield format_yield_content(f"{displayToolMessage(toolMapper[tool_name], tool_params)} failed. Please try again.")
-            return 
-        stream_gen = await save_response_to_dict(tool_name, result, storage)
-        async for chunk in stream_gen:
-            chatResponseMessage += chunk
-            yield chunk
+    elif message_type == "message":
+        yield format_yield_content(parsed_response['message']) 
+        await asyncio.sleep(0.1)
+    elif message_type == "list": 
+        parsed_tools = parse_tools_to_call(parsed_response) 
+        print(parsed_tools)
+        yield format_yield_content("Here are the steps to complete the task:")
+        async for step in stream_tool_plan_steps(parsed_tools):
+            yield step
+        storage = {}
+        index = 1
+        for tool in enumerate(parsed_tools):
+            tool_order = tool["order"]
+            tool_name = tool["tool"]
+            tool_args = tool["params"]
+            tool_params = get_tool_params(tool_args, storage) 
+            content = f"\n🚀 Executing step {index + 1}: {displayToolMessage(toolMapper[tool_name], tool_params)}"
+            yield format_yield_content(content)
+            await asyncio.sleep(0.1)
+            chatResponseMessage += content
+            result = await mcp_client.call_tool(tool_name, tool_params)
+            print(result)
+            if (result.isError):
+                yield format_yield_content(f"{displayToolMessage(toolMapper[tool_name], tool_params)} failed. Please try again.")
+                return 
+            stream_gen = await save_response_to_dict(tool_name, result, storage)
+            async for chunk in stream_gen:
+                chatResponseMessage += chunk
+                yield chunk
+            index += 1
 
     MessageService.create(
         message=Message(
@@ -128,7 +156,7 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
             from_user=False
         )
     )
-    yield format_yield_content("")
+    yield format_yield_content("\n🎉 Done!") 
     return
 
 def get_model_event_generator(): 
@@ -200,20 +228,15 @@ def displayToolMessage(toolMessage: str, toolParams: Dict[str, Any]):
     return message
 
 async def stream_tool_plan_steps(
-    parsed_tools: List[Dict[str, Any]], delay: float = 0.1, toolMapper: Dict[str, str] = {}
+    parsed_tools: List[Dict[str, Any]], toolMapper: Dict[str, str] = {}
 ):
+    should_show_step = len(parsed_tools) > 0
+    index = 1
     for tool in parsed_tools:
-        tool_name = tool["tool"]
-        order = tool["order"]
-        params = tool["params"]
-
-        param_str = ", ".join(f"{k}={json.dumps(v)}" for k, v in params.items())
-        step_msg = f"🔧 Step {order}: `{tool_name}` → Params: {param_str}"
-        yield format_yield_content(step_msg)
-        await asyncio.sleep(delay)
-
-    yield format_yield_content("🚀 Executing tools now... Please wait.")
-
+        step = f"🔧 Step {index}: " if should_show_step else ""
+        yield f"{step}{displayToolMessage(toolMapper[tool["tool"]], tool["params"])}"
+        await asyncio.sleep(0.1)
+        index += 1
 
 """
 async def gemini_event_generator(request: ChatRequest, httpRequest: Request):

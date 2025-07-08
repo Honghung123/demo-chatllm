@@ -4,8 +4,7 @@ from utils.file_metadata_manager import update_category_per_user, get_category_p
 
 from ollama import Client
 
-OLLAMA_HOST="http://192.168.128.1:11434"
-OLLAMA_MODEL="mistral"
+from ollama_config import OLLAMA_HOST, OLLAMA_MODEL
 
 client = Client(
     host=OLLAMA_HOST

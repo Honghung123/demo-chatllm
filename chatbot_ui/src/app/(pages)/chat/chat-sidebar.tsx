@@ -182,7 +182,7 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
 													<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 												</SidebarMenuButton>
 											</CollapsibleTrigger>
-											<CollapsibleContent className="max-h-[12rem]">
+											<CollapsibleContent className="max-h-[12rem] overflow-y-auto overflow-x-hidden">
 												{listFile.listFiles.map((file, index) => (
 													<SidebarMenuSub key={index} className="!p-0 !mr-0">
 														<SidebarMenuButton className="w-full justify-start text-gray-700 hover:bg-[#efefef] data-[active=true]:bg-[#efefef] cursor-pointer !p-1">

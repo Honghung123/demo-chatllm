@@ -116,7 +116,7 @@ async def handle_chat(httpRequest: Request, request: ChatRequest):
 @app.post("/upload/{username}", response_model=List[FileSystem])
 async def upload_files(username: str, files: List[UploadFile] = File(...), allowed_roles: List[str] = Form(...)):
     saved_files : List[FileSystem] = []
-    documents_dir = f"{get_root_path()}/data/files"
+    documents_dir = f"{get_root_path()}/data/files" 
     for file in files:
         extension = file.filename.split(".")[-1]
         file_name_in_server = file.filename
@@ -136,7 +136,7 @@ async def upload_files(username: str, files: List[UploadFile] = File(...), allow
         with open(file_path, "wb") as f:
             f.write(contents)
         # Save file metadata
-        if username != "admin":
+        if username != RoleName.ADMIN.split("|")[0]:
             allowed_roles = []
         # embed file content into ChromaDB
         contents = load_file(file_path) 

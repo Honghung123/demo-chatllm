@@ -1,0 +1,3 @@
+OLLAMA_HOST="http://127.0.0.1:11434"
+# OLLAMA_HOST="http://192.168.128.1:11434"
+OLLAMA_MODEL="mistral"

@@ -1,5 +1,6 @@
 from typing import Optional
 
+from ollama_config import OLLAMA_HOST, OLLAMA_MODEL
 from shared_mcp import mcp
 from tools.marketing.prompt import (
     system_prompt_analyze_sales,
@@ -7,9 +8,6 @@ from tools.marketing.prompt import (
     system_prompt_predict_future,
 )
 from ollama import Client
-
-OLLAMA_HOST="http://192.168.128.1:11434"
-OLLAMA_MODEL="mistral"
 
 client = Client(
     host=OLLAMA_HOST

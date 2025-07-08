@@ -27,6 +27,7 @@ import { remark } from "remark";
 import html from "remark-html";
 import eventBus from "@/hooks/event-bus";
 import UploadFileModal from "@/app/(pages)/chat/upload-files";
+import { RespondingAnimation } from "@/components/ui/responding-animation";
 
 interface ChatMainProps {
 	user: UserType;
@@ -83,10 +84,6 @@ export function ChatMain({ user }: ChatMainProps) {
 			}
 		}
 	};
-
-	// useEffect(() => {
-	// 	scrollToBottom();
-	// }, [messages, isTyping]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -263,14 +260,20 @@ export function ChatMain({ user }: ChatMainProps) {
 					{messages.map((message) => (
 						<ChatMessage key={message.id} message={message} />
 					))}
-
 					{isChatResponding && !isTyping && (
 						<div className="flex items-start space-x-2">
 							<div className="p-0">
 								<Image src={GptSvg} alt="GPT Logo" className="w-6 h-6" />
 							</div>
 							<div className="flex-1 flex">
-								<span>Responding...</span>
+								<RespondingAnimation variant="dots" className="text-gray-700" />
+							</div>
+						</div>
+					)}
+					{isChatResponding && isTyping && (
+						<div className="flex items-start">
+							<div className="flex-1 flex">
+								<RespondingAnimation variant="dots" className="text-gray-700" />
 							</div>
 						</div>
 					)}
@@ -305,7 +308,7 @@ export function ChatMain({ user }: ChatMainProps) {
 								</UploadFileModal>
 
 								{/* Tools Button */}
-								<Button
+								{/* <Button
 									type="button"
 									variant="ghost"
 									size="sm"
@@ -313,7 +316,7 @@ export function ChatMain({ user }: ChatMainProps) {
 								>
 									<Settings className="w-4 h-4" />
 									<span className="text-sm">Tools</span>
-								</Button>
+								</Button> */}
 							</div>
 							<div className="flex">
 								{isChatResponding || isTyping ? (
