@@ -1,10 +1,10 @@
-import mcp
+from shared_mcp import mcp
 
-from mcp_server.utils.file_metadata_manager import update_category_per_user, get_category_per_user
+from utils.file_metadata_manager import update_category_per_user, get_category_per_user
 
 from ollama import Client
 
-OLLAMA_HOST="http://127.0.0.1:11434"
+OLLAMA_HOST="http://192.168.128.1:11434"
 OLLAMA_MODEL="mistral"
 
 client = Client(
@@ -65,15 +65,15 @@ def search_file_category(file_name: str, username: str) -> str:
 
 
 @mcp.tool(
-    description="Classify a file into a specific category based on the result_read_file (the content of the file). Available categories include: " + ", ".join(categories) + ".",
+    description="Classify a file into a specific category based on the content of the file. Available categories include: " + ", ".join(categories) + ".",
     annotations={
-        "title": "Anylyze the content of file {file_name} and classify it into a category",
+        "title": "Anylyze the content of file and classify it into a category",
     }
 )
-def classify_file(result_read_file: str) -> str:
+def classify_file_based_on_content(content: str) -> str:
     messages = [
         {"role": "system", "content": "You are a file classification expert. Your task is to analyze the content of a file and classify it into one of the following categories: " + ", ".join(categories) + ". If the content does not fit any category, return 'Unclassified'. Only return the category name without any additional text."},
-        {"role": "user", "content": result_read_file},
+        {"role": "user", "content": content},
     ]
 
     response = client.chat(model=OLLAMA_MODEL, messages=messages, stream=False)
@@ -91,7 +91,7 @@ def classify_file(result_read_file: str) -> str:
         "title": "Save category of file {file_name} to metadata",
     }
 )
-def save_file_category(file_name: str, result_classify_file: str, username: str) -> str:
+def save_file_category(file_name: str, file_category: str, username: str) -> str:
     """
     Save the category of a file to metadata storage.
 
@@ -100,8 +100,8 @@ def save_file_category(file_name: str, result_classify_file: str, username: str)
 
     Args:
         file_name (str): The name of the file whose category is to be saved.
-        category (str): The category to save for the file.
+        file_category (str): The category to save for the file.
     """
 
-    update_category_per_user(file_name=file_name, user=username, category=result_classify_file)
-    return f"Category '{result_classify_file}' has been saved for file '{file_name}'."
+    update_category_per_user(file_name=file_name, user=username, category=file_category)
+    return f"Category '{file_category}' has been saved for file '{file_name}'."
