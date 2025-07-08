@@ -5,7 +5,7 @@ from typing import Optional
 
 from utils.file_utils import get_root_path
 
-METADATA_FILE_PATH = f'{get_root_path()}/data/metadata/metadata.json'
+METADATA_FILE_PATH = f'{get_root_path()}/data/metadatas/metadata.json'
 
 def load_metadata(file_path: str = METADATA_FILE_PATH) -> dict:
     """Load metadata from a file.""" 
