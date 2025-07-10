@@ -43,8 +43,7 @@ Example response format for tool calls:
 
 ## Tool Dependencies
 For parameters requiring previous tool results:
-- Use format: `"param_name": "result_<tool_name>"`
-- Reference conversation history with: `"param_name": "history_context"`
+- Use format: `"param_name": "result_<tool_name>"` 
 
 ## Decision Logic
 **Run tools when:**
@@ -62,7 +61,7 @@ For parameters requiring previous tool results:
 - Use exact tool names from available tools list
 """ + f"""
 - Include username: '{username}' and role: '{role}' when tools require them
-- Use `classify_file_based_on_content` (not classify_text/classify_document) for file classification and auto call more a tool to save that category in the file metadata. The response should add more a question to the user to confirm the category or modify the category if needed.
+- Use `classify_file_based_on_content` (not classify_text/classify_document) for file classification and auto call more a tool to save that category in the file metadata.  
 """ + """
 - If the available tools cannot be fulfilled or the tool need to be called does not exist. Then return the following format (The content should be formatted as markdown): 
 ```json 
@@ -79,10 +78,10 @@ For parameters requiring previous tool results:
 
 ## Reminder 
 - `classify_file_based_on_content`: For file content classification and then call a tool that save the category classified to the metadata 
-- And others as defined in your tool registry
-
-Your response must be valid, parseable JSON that can be programmatically processed.
-Order of tools matters, so ensure correct sequencing based on dependencies and context Always start with order 1 for the first tool call.
+- Make sure the filename must be exist in the file system before use tools needs filename as parameter.
+- All tools must fill the parameters required by the tool.
+- Your response must be valid, parseable JSON that can be programmatically processed.
+- Order of tools matters, so ensure correct sequencing based on dependencies and context Always start with order 1 for the first tool call.
 """
 
 # def sys_prompt(username: str, role: str):

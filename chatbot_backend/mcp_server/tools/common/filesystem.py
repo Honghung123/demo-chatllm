@@ -1,4 +1,5 @@
 # filesystem.py
+import re
 from typing import List, Optional
 import os
 from shared_mcp import mcp
@@ -6,14 +7,8 @@ from search.vector_db import ChromaManager
 from utils.file_metadata_manager import get_list_file_names_by_user_and_role
 from utils.file_utils import get_root_path
 from utils.file_loader import load_file
-
-from ollama import Client
-from ollama_config import OLLAMA_HOST, OLLAMA_MODEL
-
-client = Client(
-    host=OLLAMA_HOST
-)
-
+from ollama_config import ask_llm 
+ 
 db = ChromaManager(collection_name="my_documents", persist_directory=f"{get_root_path()}/data/vector_db")
  
 @mcp.tool(
@@ -40,9 +35,8 @@ def search_file_has_content_ralated(user_input: str, username: str, role: str) -
     )
     return results
 
-
 @mcp.tool(
-    description="Search file that have name similar to the provided filename. Return only a filename. Example: Q2 Sales Report.txt",
+    description="Search the exact file that have name related to the provided filename, user and role. Return exactly the filename. Ex: summary.txt -> summaries.txt,... This tool makes sure the file is existed.",
     annotations={
         "title": "Searching file {filename}"
     }
@@ -61,20 +55,15 @@ def search_file_has_name_like(filename: str, username: str, role: str) -> str:
     """
     filenames = get_list_file_names_by_user_and_role(username, role)
     messages = [
-        {"role": "system", "content": f"You are a file search expert. I provide you a list of filenames: {filenames}, and your task is to find a file name that is similar to the provided filename in the list I given. Only return the filename without any additional text. If you cannot find a file name that is similar to the provided filename, return 'No file found'."},
+        {"role": "system", "content": f"You are a file search expert. I provide you a list of filenames: {filenames}, and your task is to find a file name that is almost or exactly the same name to the provided filename in the list I given. Only return the filename without any additional text in square brackets (ex: [summary.txt]). If there is no filename that is related to the provided one, response empty square brackets, e.g. '[]'."},
         {"role": "user", "content": filename},
     ]
-
-    response = client.chat(model=OLLAMA_MODEL, messages=messages, stream=False)
-    
-    return (
-        response["message"]["content"]
-        if "message" in response
-        else "No response from model"
-    )
+    response = ask_llm(messages)
+    result = response["message"]["content"] 
+    return result.strip()
 
 @mcp.tool(
-    description="Read the content of the file name. Example filename: 'Q2 Sales Report.txt', 'user_guide.txt'", 
+    description="Read the content of the filename(make sure the file was checked that existed). Example filename: 'abc.txt', 'user_guide.pdf', ...", 
     annotations={
         "title": "Reading file {filename}"
     }
@@ -97,37 +86,21 @@ def read_file(filename: str) -> str:
         return f"Error reading file {filename}: {str(e)}"
 
 @mcp.tool(
-    description="Write a file to the specified file path, default folder path is 'mcp_server/files'",
+    description="Create a file with the given filename and write the content to the file",
     annotations={
         "title": "Writing file {file_name}"
     }
 )
-def write_file(content: str, file_name: str, path: str = "../files") -> str:
-    """Write a file to the specified file path, default is 'mcp_server/files/test.txt'"""
+def create_and_write_file(content: str, file_name: str) -> str: 
     try:
         # Ensure the directory exists
+        path = f"{get_root_path()}/data/files/{file_name}"
         directory = os.path.dirname(path)
         if directory and not os.path.exists(directory):
             os.makedirs(directory)
 
-        with open(f"{path}/{file_name}", "w", encoding="utf-8") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(content)
-        return f"Successfully wrote to {path}"
+        return f"Successfully wrote to {file_name}"
     except Exception as e:
-        return f"Error writing to file {path}: {str(e)}"
-
-
-@mcp.tool(
-    description="Create a file in the specified folder path, default folder is 'mcp_server/files'",
-    annotations={
-        "title": "Creating file {file_name}"
-    }
-)
-def create_file(path: str, file_name: str) -> str:
-    """Create a file"""
-    try:
-        with open(f"{path}/{file_name}", "w", encoding="utf-8") as f:
-            f.write("")
-        return f"Successfully created file {path}"
-    except Exception as e:
-        return f"Error creating file {path}: {str(e)}"
+        return f"Error writing to file {file_name}"

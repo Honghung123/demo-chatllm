@@ -2,14 +2,7 @@ from shared_mcp import mcp
 
 from utils.file_metadata_manager import update_category_per_user, get_category_per_user
 
-from ollama import Client
-
-from ollama_config import OLLAMA_HOST, OLLAMA_MODEL
-
-client = Client(
-    host=OLLAMA_HOST
-)
-
+from ollama_config import ask_llm
 categories = [
     "Company Plans",
     "Company Reports",
@@ -38,7 +31,7 @@ categories = [
 
 
 @mcp.tool(
-    description="Search the category of a user's file if the file has been classified before. This tool helps users to quickly find out which category a file belongs to.",
+    description="Search the category of a user's file if the file has been classified before (based on the history chat). This tool helps users to quickly find out which category a file belongs to.",
     annotations
     = {
         "title": "Search category of file {file_name} in metadata",
@@ -62,25 +55,23 @@ def search_file_category(file_name: str, username: str) -> str:
     return f"File '{file_name}' is classified under '{category}' category."
 
 
-
 @mcp.tool(
-    description="Classify a file into a specific category based on the content of the file. Available categories include: " + ", ".join(categories) + ".",
+    description="Classify a file into only one category based on the summary content of the file. Available categories include: " + ", ".join(categories) + ".",
     annotations={
-        "title": "Anylyze the content of file and classify it into a category",
+        "title": "Anylyze the content of the file and classify it into a category",
     }
 )
-def classify_file_based_on_content(content: str) -> str:
+def classify_file_based_on_content(file_content: str) -> str:
     messages = [
-        {"role": "system", "content": "You are a file classification expert. Your task is to analyze the content of a file and classify it into one of the following categories: " + ", ".join(categories) + ". If the content does not fit any category, return 'Unclassified'. Only return the category name without any additional text."},
-        {"role": "user", "content": content},
+        {"role": "system", "content": "You are a file classification expert. Your task is to analyze the content of the speicific file content and classify it into one of the following categories: " + ", ".join(categories) + ". If the content does not fit any category, return 'Unclassified'. Only return the category name without any additional text."},
+        {"role": "user", "content": file_content},
     ]
 
-    response = client.chat(model=OLLAMA_MODEL, messages=messages, stream=False)
-    
+    response = ask_llm(messages)
     return (
         response["message"]["content"]
         if "message" in response
-        else "No response from model"
+        else ""
     )
 
 
