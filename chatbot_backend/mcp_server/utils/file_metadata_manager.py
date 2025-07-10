@@ -110,7 +110,7 @@ def get_list_file_names_by_user_and_role(user:str, role: str) -> list:
     file_names = []
     
     for file_name, metadata in metadatas.items():
-        if user == metadata.get('author', '') or role == "admin" or role in metadata.get("roles", []):
+        if user == metadata.get('username', '') or role == "admin" or role in metadata.get("roles", []):
             file_names.append(file_name)
     
     return file_names

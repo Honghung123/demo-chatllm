@@ -271,7 +271,7 @@ export function ChatMain({ user }: ChatMainProps) {
 						</div>
 					)}
 					{isChatResponding && isTyping && (
-						<div className="flex items-start">
+						<div className="flex items-start px-10">
 							<div className="flex-1 flex">
 								<RespondingAnimation variant="dots" className="text-gray-700" />
 							</div>
