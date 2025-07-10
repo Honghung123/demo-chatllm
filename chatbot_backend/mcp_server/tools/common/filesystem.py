@@ -14,10 +14,10 @@ db = ChromaManager(collection_name="my_documents", persist_directory=f"{get_root
 @mcp.tool(
     description="Search related files have content related the user_input(the summary prompt of user). Return a list of file names, with the given username and role. Example: ['Q2 Sales Report.txt', 'user_guide.txt']", 
     annotations={
-        "title": "Searching file content and getting related files based on user input"
+        "title": "Searching the file content and getting related files"
     }
 )
-def search_file_has_content_ralated(user_input: str, username: str, role: str) -> List[str]:
+def search_file_has_content_related(user_input: str, username: str, role: str) -> List[str]:
     """
     Read specific files or retrieve relevant documents based on a query.
 

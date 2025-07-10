@@ -100,8 +100,7 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         messages=prompt,
         stream=False,
         tools=formatted_tools,  
-    )
-    print(res.message.content)
+    ) 
     parsed_response = parse_response_text(res.message.content) 
     message_type = determine_message_type(parsed_response)
     if message_type == "error":
@@ -116,21 +115,20 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         async for step in stream_tool_plan_steps(parsed_tools, toolMapper):
             yield step
         storage = {}
-        index = 1
+        index = 1 
         for tool in parsed_tools:
-            # tool_order = tool["order"]
-            tool_name = tool["tool"]
-            tool_args = tool["params"]
+            # tool_order = tool["order"] 
+            tool_name = tool.get("tool", "")
+            tool_args = tool.get("params", {})
             tool_params = get_tool_params(tool_args, storage) 
-            content = f"🚀 Executing step {index}: {displayToolMessage(toolMapper[tool_name], tool_params)}"
-            yield format_yield_content("\n\n\n")
+            content = f"🚀 Executing step {index}: {displayToolMessage(toolMapper.get(tool_name), tool_params)}" 
             yield format_yield_content(content)
             await asyncio.sleep(0.1)
             chatResponseMessage += content
             result = await mcp_client.call_tool(tool_name, tool_params)
             print(result)
             if (result.isError):
-                yield format_yield_content(f"{displayToolMessage(toolMapper[tool_name], tool_params)} failed. Please try again.")
+                yield format_yield_content(f"{displayToolMessage(toolMapper.get(tool_name), tool_params)} failed. Please try again.")
                 return 
             stream_gen = await save_response_to_dict(tool_name, result, storage)
             async for chunk in stream_gen:
