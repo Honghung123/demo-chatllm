@@ -7,6 +7,13 @@ from utils.file_metadata_manager import get_list_file_names_by_user_and_role
 from utils.file_utils import get_root_path
 from utils.file_loader import load_file
 
+from ollama import Client
+from ollama_config import OLLAMA_HOST, OLLAMA_MODEL
+
+client = Client(
+    host=OLLAMA_HOST
+)
+
 db = ChromaManager(collection_name="my_documents", persist_directory=f"{get_root_path()}/data/vector_db")
  
 @mcp.tool(
@@ -32,6 +39,39 @@ def search_file_has_content_ralated(user_input: str, username: str, role: str) -
         query=user_input, n_results=10, filenames=filenames
     )
     return results
+
+
+@mcp.tool(
+    description="Search file that have name similar to the provided filename. Return only a filename. Example: Q2 Sales Report.txt",
+    annotations={
+        "title": "Searching file {filename}"
+    }
+)
+def search_file_has_name_like(filename: str, username: str, role: str) -> str:
+    """
+    Search for file that have name similar to the provided filename.
+
+    Args:
+        filename: The name of the file to search for
+        username: The username of the user
+        role: The role of the user
+
+    Returns:
+        A filename that most matching the search criteria
+    """
+    filenames = get_list_file_names_by_user_and_role(username, role)
+    messages = [
+        {"role": "system", "content": f"You are a file search expert. I provide you a list of filenames: {filenames}, and your task is to find a file name that is similar to the provided filename in the list I given. Only return the filename without any additional text. If you cannot find a file name that is similar to the provided filename, return 'No file found'."},
+        {"role": "user", "content": filename},
+    ]
+
+    response = client.chat(model=OLLAMA_MODEL, messages=messages, stream=False)
+    
+    return (
+        response["message"]["content"]
+        if "message" in response
+        else "No response from model"
+    )
 
 @mcp.tool(
     description="Read the content of the file name. Example filename: 'Q2 Sales Report.txt', 'user_guide.txt'", 
