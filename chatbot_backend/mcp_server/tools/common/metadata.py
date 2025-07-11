@@ -63,7 +63,7 @@ def search_file_category(file_name: str, username: str) -> str:
 )
 def classify_file_based_on_content(file_content: str) -> str:
     messages = [
-        {"role": "system", "content": "You are a file classification expert. Your task is to analyze the content of the speicific file content and classify it into one of the following categories: " + ", ".join(categories) + ". If the content does not fit any category, return 'Unclassified'. Only return the category name without any additional text."},
+        {"role": "system", "content": "You are a file classification expert. Your task is to analyze the content of the speicific file content and classify it into one of the following categories: " + ", ".join(categories) + ". Only return the category name without any additional text."},
         {"role": "user", "content": file_content},
     ]
 

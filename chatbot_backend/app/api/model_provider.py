@@ -84,10 +84,10 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         toolMapper[tool.name] = tool.annotations.title  
     chatResponseMessage = ""
     historyMessage = MessageService.get_all_chat(request.userId, request.conversationId)
-    histories = [{"role": "user" if message.from_user else "assistant", "content": message.content} for message in historyMessage]
+    histories = [{"role": "user" if message.from_user else "system", "content": message.content} for message in historyMessage]
     prompt = [
-        {"role": "system", "content": sys_prompt(request.username, request.userRole)},
         *histories,
+        {"role": "system", "content": sys_prompt(request.username, request.userRole)},
         {
             "role": "user",
             "content": request.content,
@@ -101,6 +101,7 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         stream=False,
         tools=formatted_tools,  
     )   
+    print(res.message.content)
     parsed_response = parse_response_text(res.message.content)   
     message_type = determine_message_type(parsed_response)
     if message_type == "error":
@@ -125,14 +126,13 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
             tool_params = get_tool_params(tool_args, storage) 
             content = f"🚀 Executing step {index}: {displayToolMessage(toolMapper.get(tool_name), tool_params)}" 
             yield format_yield_content(content)
-            await asyncio.sleep(0.1)
-            # chatResponseMessage += content
+            await asyncio.sleep(0.1) 
             result = await mcp_client.call_tool(tool_name, tool_params)
             print(result)
             if (result.isError):
                 yield format_yield_content(f"{displayToolMessage(toolMapper.get(tool_name), tool_params)} failed. Please try again.")
                 return 
-            chatResponseMessage += result.content[0].text if len(result.content) > 0 else ""
+            chatResponseMessage += f"{displayToolMessage(toolMapper.get(tool_name), tool_params)}: {result.content[0].text if len(result.content) > 0 else ''}, " 
             yield save_response_to_dict(tool_name, result, storage)
             index += 1
 

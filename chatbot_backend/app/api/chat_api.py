@@ -24,7 +24,7 @@ from app.file.file_loader import load_file
 from app.search.document import Document
 from app.service.db_service import drop_all_tables
 from utils.file_utils import get_root_path
-from utils.environment import SERVER_HOST, SERVER_PORT
+from utils.environment import FE_URL, FE_DEPLOY_URL, SERVER_HOST, SERVER_PORT
 from app.search.vector_db import chroma_db
 
 app = FastAPI(
@@ -39,7 +39,7 @@ aiModels = [
             "modelName": "mistral",
             "displayName": "Ollama - Mistral",
             "description": "Great for everyday tasks",
-        },
+        }, 
         {
             "model": "ollama",
             "modelName": "llama3.1",
@@ -174,7 +174,7 @@ async def clear_data():
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Allow localhost:3000
+    allow_origins=[FE_URL, FE_DEPLOY_URL],  # Allow localhost:3000
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
