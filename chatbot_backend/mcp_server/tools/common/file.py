@@ -3,7 +3,7 @@ from shared_mcp import mcp
 from ollama_config import ask_llm
 
 @mcp.tool(
-    description="Summarize the content of a file into a short summary.",
+    description="Make sure the file content was read from a file before using this tool. Summarize the content of a file into a short summary.",
     annotations={
         "title": "Summarizing the content of file",
     }

@@ -83,7 +83,12 @@ export function ChatMain({ user }: ChatMainProps) {
 				});
 			}
 		}
+		return "";
 	};
+
+	useEffect(() => {
+		scrollToBottom();
+	}, [messages]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -267,6 +272,7 @@ export function ChatMain({ user }: ChatMainProps) {
 							</div>
 							<div className="flex-1 flex">
 								<RespondingAnimation variant="dots" className="text-gray-700" />
+								{scrollToBottom()}
 							</div>
 						</div>
 					)}

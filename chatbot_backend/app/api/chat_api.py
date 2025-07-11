@@ -22,6 +22,7 @@ from app.service.message_service import MessageService
 from app.file.file_pre_processing import preprocess_text
 from app.file.file_loader import load_file
 from app.search.document import Document
+from app.service.db_service import drop_all_tables
 from utils.file_utils import get_root_path
 from utils.environment import SERVER_HOST, SERVER_PORT
 from app.search.vector_db import chroma_db
@@ -157,6 +158,18 @@ async def upload_files(username: str, files: List[UploadFile] = File(...), allow
         FileService.create(file=file_system, roles=allowed_roles)
         saved_files.append(file_system)
     return saved_files
+
+
+# clear data
+@app.get("/clear-data", response_model=str)
+async def clear_data():
+    try:
+        # clear all data in the database
+        drop_all_tables()
+        chroma_db.clear_collection()
+        return "Data clear successfully, please restart the server to apply changes."
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error data clear: {str(e)}")
 
 # Add CORS middleware
 app.add_middleware(

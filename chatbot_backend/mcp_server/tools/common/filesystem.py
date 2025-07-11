@@ -12,7 +12,7 @@ from ollama_config import ask_llm
 db = ChromaManager(collection_name="my_documents", persist_directory=f"{get_root_path()}/data/vector_db")
  
 @mcp.tool(
-    description="Search related files have content related the user_input(the summary prompt of user). Return a list of file names, with the given username and role. Example: ['Q2 Sales Report.txt', 'user_guide.txt']", 
+    description="Search related files have content related the user_input(the summary prompt of user). Return a list of file names, with the given username and role. Example list file names to be returned: ['abc.txt', 'user_guide.pdf', ...]", 
     annotations={
         "title": "Searching the file content and getting related files"
     }
@@ -63,7 +63,7 @@ def search_file_has_name_like(filename: str, username: str, role: str) -> str:
     return result.strip()
 
 @mcp.tool(
-    description="Read the content of the filename(make sure the file was checked that existed). Example filename: 'abc.txt', 'user_guide.pdf', ...", 
+    description="Make sure the file was checked that existed before using this tool. Read the content of the filename. Example filename: 'abc.txt', 'user_guide.pdf', ...", 
     annotations={
         "title": "Reading file {filename}"
     }

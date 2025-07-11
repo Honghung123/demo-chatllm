@@ -56,9 +56,9 @@ def search_file_category(file_name: str, username: str) -> str:
 
 
 @mcp.tool(
-    description="Classify a file into only one category based on the summary content of the file. Available categories include: " + ", ".join(categories) + ".",
+    description="Make sure the file content was read from a file by using reading file tool before using this tool. Classify a file into only one category based on the summary content of the file. Available categories include: " + ", ".join(categories) + ".",
     annotations={
-        "title": "Anylyze the content of the file and classify it into a category",
+        "title": "Analyze the content of the file and classify it into a category",
     }
 )
 def classify_file_based_on_content(file_content: str) -> str:
@@ -76,7 +76,7 @@ def classify_file_based_on_content(file_content: str) -> str:
 
 
 @mcp.tool(
-    description="Store category of a file to metadata storage to use in the future.",
+    description="Make sure the filename was checked, classified before using this tool. Store category for a file to metadata storage to use in the future.",
     annotations={
         "title": "Save category of file {file_name} to metadata",
     }
