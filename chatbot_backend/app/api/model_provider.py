@@ -101,8 +101,19 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         stream=False,
         tools=formatted_tools,  
     )   
-    print(res.message.content)
-    parsed_response = parse_response_text(res.message.content)   
+    print(res)
+    parsed_response = []
+    if not res.message.content:
+        parsed_response = []
+        for i, tool_call in enumerate(res.message["tool_calls"], start=1):
+            parsed_response.append(
+                {
+                    "name": tool_call.function.name,
+                    "arguments": tool_call.function.arguments
+                }
+            )
+    else:
+        parsed_response = parse_response_text(res.message.content)   
     message_type = determine_message_type(parsed_response)
     if message_type == "error":
         yield format_yield_content(parsed_response['error']) 

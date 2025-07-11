@@ -56,7 +56,7 @@ def search_file_category(file_name: str, username: str) -> str:
 
 
 @mcp.tool(
-    description="Make sure the file content was read from a file by using reading file tool before using this tool. Classify a file into only one category based on the summary content of the file. Available categories include: " + ", ".join(categories) + ".",
+    description="Make sure to pass file_content as an argument of this file or you will kill the workflow as it is not NULL or empty. This tools is used for classifying a file into only one category based on the content of the file. Available categories include: " + ", ".join(categories) + ".",
     annotations={
         "title": "Analyze the content of the file and classify it into a category",
     }
@@ -76,12 +76,12 @@ def classify_file_based_on_content(file_content: str) -> str:
 
 
 @mcp.tool(
-    description="Make sure the filename was checked, classified before using this tool. Store category for a file to metadata storage to use in the future.",
+    description="Make sure the filename was checked, classified before using this tool. Store category for a file to metadata storage to use in the future. Remember to pass username as an argument of this tool. This tool is used to save the category of a file to metadata storage for future reference.",
     annotations={
         "title": "Save category of file {file_name} to metadata",
     }
 )
-def save_file_category(file_name: str, file_category: str, username: str) -> str:
+def save_file_category(file_name: str, file_category: str, username: str = 'admin') -> str:
     """
     Save the category of a file to metadata storage.
 

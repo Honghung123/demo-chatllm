@@ -76,4 +76,8 @@ For parameters requiring previous tool results:
 - All tools must fill the parameters required by the tool.
 - Your response must be valid, parseable JSON that can be programmatically processed.
 - Order of tools matters, so ensure correct sequencing based on dependencies and context  
+
+- **Remember to always pass parameters required by the tool, if the tool does not require any parameters, then pass an empty object `{}`.** If you don't follow this rule, the tool will not be called and the user will not get the expected result.
+- **Read histories carefully to understand what information is already available and what needs to be gathered. Don't call tools unnecessarily or when the information is already available. If you don't follow this rule, the user will not get the expected result.**
+- **If you are using tool `classify_file_based_on_content`, then you must call the tool `classify_file_based_on_content` with the file content and then save the category to metadata storage. If you don't follow this rule, the user will not get the expected result.**
 """
