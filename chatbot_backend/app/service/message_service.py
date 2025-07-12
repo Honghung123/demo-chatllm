@@ -21,6 +21,7 @@ class MessageService:
             message_id TEXT PRIMARY KEY,
             conversation_id TEXT NOT NULL,
             user_id TEXT NOT NULL,
+            summary TEXT,
             content TEXT NOT NULL,
             from_user INTEGER NOT NULL,
             is_error INTEGER NOT NULL,
@@ -43,8 +44,8 @@ class MessageService:
         data = message.to_sqlite_dict()
         cursor.execute(
             """
-            INSERT INTO messages (conversation_id, user_id, message_id, content, from_user, is_error, timestamp) 
-            VALUES (:conversation_id, :user_id, :message_id, :content, :from_user, :is_error, :timestamp)
+            INSERT INTO messages (conversation_id, user_id, message_id, content, summary, from_user, is_error, timestamp) 
+            VALUES (:conversation_id, :user_id, :message_id, :content, :summary, :from_user, :is_error, :timestamp)
             """, 
             data
         )

@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) 
 
-from app.service.db_service import drop_all_tables, ensure_db_file_exists 
+from app.service.db_service import ensure_db_file_exists 
 from schema.user import User
 from service.role_service import RoleName, RoleService
 from service.conversation_service import ConversationService
@@ -33,8 +33,7 @@ def seed_message_data():
     MessageService.create_table_if_not_exists() 
      
 def seed_data():    
-    ensure_db_file_exists()
-    drop_all_tables()
+    ensure_db_file_exists() 
     seed_role_data()
     seed_user_data()
     seed_conversation_data()

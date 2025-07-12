@@ -1,6 +1,12 @@
 "use client";
 
-import { addNewCoversation, getAllChatHistories, getAllProvidedFiles, uploadFileToServer } from "@/api/chat.api";
+import {
+	addNewCoversation,
+	deleteAllConversations,
+	getAllChatHistories,
+	getAllProvidedFiles,
+	uploadFileToServer,
+} from "@/api/chat.api";
 import { getFileIcon } from "@/app/(pages)/chat/files";
 import GptSvg from "@/assets/svg/gpt.svg";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -100,6 +106,21 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
 		setChatHistory((prev) => prev.filter((chat) => chat.id !== conversationId));
 	};
 
+	const handleDeleteAllConversation = async () => {
+		try {
+			const result = await deleteAllConversations();
+			if (![200, 201, 204].includes(result)) {
+				throw new Error();
+			}
+		} catch (error) {
+			alert("Failed to delete all conversations");
+		}
+		const newChatConversation = await addNewCoversation(user.id);
+		setChatHistory([newChatConversation]);
+		eventBus.emit("changeConversation", { conversationId: newChatConversation.id });
+		setSelectedChat(newChatConversation.id);
+	};
+
 	return (
 		<Sidebar className="border-r border-gray-200 bg-sidebar select-none">
 			<SidebarHeader className="p-2">
@@ -128,7 +149,12 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
 
 			<SidebarContent>
 				<SidebarGroup>
-					<SidebarGroupLabel className="text-gray-500 text-sm font-medium p-2">Chats</SidebarGroupLabel>
+					<SidebarGroupLabel className="text-gray-500 text-sm font-medium p-2 flex justify-between items-center">
+						<span>Chats</span>
+						<span className="cursor-pointer hover:bg-slate-200" onClick={handleDeleteAllConversation}>
+							<Trash2 className="w-4 h-4" />
+						</span>
+					</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<ScrollArea className="max-h-[11rem] overflow-auto">
 							<SidebarMenu>

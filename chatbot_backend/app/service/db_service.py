@@ -13,9 +13,9 @@ def ensure_db_file_exists():
         # Tạo file rỗng
         open(DB_PATH, 'a').close()
 
-def drop_all_tables():
+def truncate_all_tables():
     """
-    Xóa toàn bộ bảng trong database SQLite.
+    Xóa data cac bảng trong database SQLite.
     """
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -24,14 +24,14 @@ def drop_all_tables():
         tables = cur.fetchall()
 
         for (table_name,) in tables:
-            if table_name == "sqlite_sequence":
+            if table_name == "sqlite_sequence" or table_name in ["users", "roles"]:
                 continue
-            cur.execute(f"DROP TABLE IF EXISTS {table_name};")
-            print(f"Dropped table: {table_name}")
+            cur.execute(f"DELETE FROM {table_name};")
+            print(f"Truncated table: {table_name}")
 
         conn.commit()
-        print("All tables dropped successfully.")
+        print("All tables truncated successfully.")
     except sqlite3.Error as e:
-        print(f"Error dropping tables: {e}")
+        print(f"Error truncating tables: {e}")
     finally:
         conn.close() 

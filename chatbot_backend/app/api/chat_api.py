@@ -22,7 +22,7 @@ from app.service.message_service import MessageService
 from app.file.file_pre_processing import preprocess_text
 from app.file.file_loader import load_file
 from app.search.document import Document
-from app.service.db_service import drop_all_tables
+from app.service.db_service import truncate_all_tables
 from utils.file_utils import get_root_path
 from utils.environment import FE_URL, FE_DEPLOY_URL, SERVER_HOST, SERVER_PORT
 from app.search.vector_db import chroma_db
@@ -92,6 +92,7 @@ async def new_conversation(userId: str):
             conversation_id=conversation_id,
             user_id=userId,
             content="Hi, I'm your assistant, how can I help you today?",
+            summary="Hi, I'm your assistant, how can I help you today?",
             from_user=False,
             is_error=False, 
         )
@@ -183,7 +184,7 @@ async def upload_files(username: str, files: List[UploadFile] = File(...), allow
 async def clear_data():
     try:
         # clear all data in the database
-        drop_all_tables()
+        truncate_all_tables()
         chroma_db.clear_collection()
         return "Data clear successfully, please restart the server to apply changes."
     except Exception as e:

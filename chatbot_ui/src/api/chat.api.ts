@@ -73,3 +73,14 @@ export const uploadFileToServer = async (username: string, files: File[], roles:
 		return [];
 	}
 };
+
+export const deleteAllConversations = async () => {
+	try {
+		const res = await myAxios.get(`/clear-data`, {
+			headers: { "Content-Type": "application/json" },
+		});
+		return res.status;
+	} catch (error) {
+		return 500;
+	}
+};

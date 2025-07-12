@@ -87,22 +87,21 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         ) 
         toolMapper[tool.name] = tool.annotations.title  
     chatResponseMessage = ""
+    chatResponseSummaryMessage = ""
     historyMessage = MessageService.get_all_chat(request.userId, request.conversationId)
-    histories = [{"role": "user" if message.from_user else "assistant", "content": message.content} for message in historyMessage]
+    histories = [{"role": "user" if message.from_user else "assistant", "content": message.summary} for message in historyMessage]
     prompt = [
         {"role": "system", "content": sys_prompt(request.username, request.userRole, formatted_tools, histories)},
         {
             "role": "user",
             "content": request.content,
         },
-    ] 
-    # print(histories)
+    ]  
     MessageService.create(Message(conversation_id=request.conversationId, user_id=request.userId, content=request.content, from_user=True))
     res = client.chat(
         model=request.modelName,
         messages=prompt,
-        stream=False,
-        # tools=formatted_tools,  
+        stream=False, 
     )   
     print(res)
     parsed_response = []
@@ -121,21 +120,30 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
     if message_type == "error":
         if isinstance(parsed_response, str):
             yield format_yield_content(parsed_response)
+            chatResponseMessage += format_yield_content(parsed_response)
+            chatResponseSummaryMessage += parsed_response
         elif isinstance(parsed_response, dict):
             yield format_yield_content(parsed_response['error']) 
+            chatResponseMessage += format_yield_content(parsed_response['error'])
+            chatResponseSummaryMessage += parsed_response['error']
         await asyncio.sleep(0.1)
     elif message_type == "message":
         yield format_yield_content(parsed_response['message'])
+        chatResponseMessage += format_yield_content(parsed_response['message'])
+        chatResponseSummaryMessage += parsed_response['message']
         await asyncio.sleep(0.1)
     elif message_type == "list": 
         try:
             parsed_tools = parse_tools_to_call(parsed_response)
             if not parsed_tools:
                 yield format_yield_content("No tools to call")
+                chatResponseMessage += format_yield_content("No tools to call")
+                chatResponseSummaryMessage += "No tools to call"
                 return
             yield format_yield_content("Here are the steps to complete the task:")
             async for step in stream_tool_plan_steps(parsed_tools, toolMapper):
                 yield step
+                chatResponseMessage += step
             storage = {}
             index = 1
             for tool in parsed_tools: 
@@ -143,13 +151,17 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
                 tool_args = tool.get("arguments", {})
                 tool_params = get_tool_params(tool_args, storage)
                 content = f"🚀 Executing step {index}: {displayToolMessage(toolMapper.get(tool_name), tool_params)}"
+                chatResponseMessage += content
                 yield format_yield_content(content)
                 await asyncio.sleep(0.1)
                 result = await mcp_client.call_tool(tool_name, tool_params)
                 if (result.isError):
                     raise Exception()
-                chatResponseMessage += f"{displayToolMessage(toolMapper.get(tool_name), tool_params)}: {result.content[0].text if len(result.content) > 0 else ''}, " 
-                yield save_response_to_dict(tool_name, result, storage)
+                chatResponseSummaryMessage += f"{displayToolMessage(toolMapper.get(tool_name), tool_params)}: {result.content[0].text if len(result.content) > 0 else ''}, " 
+                
+                tool_result = save_response_to_dict(tool_name, result, storage)
+                chatResponseMessage += tool_result
+                yield tool_result
                 index += 1
 
             MessageService.create(
@@ -157,8 +169,8 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
                     conversation_id=request.conversationId,
                     user_id=request.userId,
                     content=chatResponseMessage,
+                    summary=chatResponseSummaryMessage,
                     from_user=False
-                    
                 )
             )
             yield format_yield_content("\n🎉 Done!")  
