@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { chatStreamingResponse, getAllAiModels, getChatHistory } from "@/api/chat.api";
+import { chatStreamingResponse, getAllAiModels, getChatHistory, renameTheConversation } from "@/api/chat.api";
 import { ChatMessage } from "@/app/(pages)/chat/chat-message";
 import UploadFileModal from "@/app/(pages)/chat/upload-files";
 import GptSvg from "@/assets/svg/gpt.svg";
@@ -93,6 +93,13 @@ export function ChatMain({ user }: ChatMainProps) {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!input.trim() || isChatResponding) return;
+		let shouldUpdateConversationName = false;
+		let conversationName = "";
+		console.log(messages);
+		if (messages!.length == 1) {
+			shouldUpdateConversationName = true;
+			conversationName = input.trim();
+		}
 		scrollToBottom();
 		const userMessage: MessageType = {
 			conversation_id: conversationId!,
@@ -200,6 +207,15 @@ export function ChatMain({ user }: ChatMainProps) {
 				}
 			});
 			controllerRef.current = new AbortController();
+		}
+		if (shouldUpdateConversationName) {
+			try {
+				await renameTheConversation(conversationId!, conversationName);
+				console.log("Change successfully with name: " + conversationName);
+				eventBus.emit("changeConversationName", { conversationId: conversationId!, newTitle: conversationName });
+			} catch (error) {
+				console.log(error);
+			}
 		}
 		setIsTyping(false);
 		setIsChatResponding(false);

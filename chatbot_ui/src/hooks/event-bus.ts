@@ -2,6 +2,7 @@ export interface ChatEventMap {
 	changeConversation: { conversationId: string };
 	uploadFiles: { files: File[]; roles: string[] };
 	confirmUploadFiles: { result: boolean; error?: Error };
+	changeConversationName: { conversationId: string; newTitle: string };
 	// thêm các event khác...
 }
 

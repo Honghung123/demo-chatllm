@@ -99,6 +99,15 @@ async def new_conversation(userId: str):
     )
     return conversation
 
+class ConversationRenameRequest(BaseModel):
+    conversationId: str
+    newTitle: str
+
+@app.post("/conversations/rename", response_model=None)
+async def rename_conversation(request: ConversationRenameRequest):
+    ConversationService.rename(request.conversationId, request.newTitle)
+    print(f"Conversation renamed to {request.newTitle}")
+
 class ListFileResponse(BaseModel):
     name: str
     listFiles: List[FileSystem]
@@ -114,7 +123,7 @@ def get_list_chat_histories(username: str):
             "listFiles": system_files
         },
         { 
-            "name": "Persional",
+            "name": "Personal",
             "listFiles": personal_files
         },
     ]

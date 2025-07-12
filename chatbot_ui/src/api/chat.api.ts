@@ -84,3 +84,15 @@ export const deleteAllConversations = async () => {
 		return 500;
 	}
 };
+
+export const renameTheConversation = async (conversationId: string, newTitle: string) => {
+	try {
+		const payload = { conversationId, newTitle };
+		const res = await myAxios.post<string>(`/conversations/rename`, payload, {
+			headers: { "Content-Type": "application/json" },
+		});
+		return res.data;
+	} catch (error) {
+		return "";
+	}
+};

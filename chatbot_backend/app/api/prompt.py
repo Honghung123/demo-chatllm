@@ -141,9 +141,9 @@ Ask yourself these questions:
 ```
 7. - If the available tools cannot be fulfilled or the tool need to be called does not exist. Then return the following format: 
 ```json 
-{
-  "error": "<explanation>"
-} 
+{{
+  "error": "I cannot help because: [clear reason]"
+}}
 ```   
 
 **OPTION 2 - When you need to call tools (information NOT in history):**

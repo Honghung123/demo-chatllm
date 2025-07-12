@@ -46,11 +46,26 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
 	const [listFiles, setListFiles] = useState<FileListType[]>([]);
 	const [selectedChat, setSelectedChat] = useState("1");
 	const listFilesRef = useRef(listFiles);
+	const listChatHistoryRef = useRef(chatHistory);
 
 	// Đồng bộ ref mỗi khi state thay đổi
 	useEffect(() => {
 		listFilesRef.current = listFiles;
-	}, [listFiles]);
+		listChatHistoryRef.current = chatHistory;
+	}, [listFiles, chatHistory]);
+
+	useEffect(() => {
+		const unsubscribe = eventBus.on("changeConversationName", async (payload) => {
+			const newChatHistory = [...listChatHistoryRef.current];
+			const conversationIdx = newChatHistory.findIndex((item) => item.id == payload.conversationId)!;
+			newChatHistory[conversationIdx].title = payload.newTitle;
+			setChatHistory(newChatHistory);
+			listChatHistoryRef.current = newChatHistory;
+		});
+		return () => {
+			unsubscribe();
+		};
+	}, []);
 
 	useEffect(() => {
 		const fetchData = async () => {

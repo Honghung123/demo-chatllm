@@ -70,7 +70,7 @@ def parse_tools_to_call(data: Any):
         return None
 
 # Hàm generator async để stream dữ liệu theo SSE
-async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
+async def ollama_event_generator(request: ChatRequest, httpRequest: Request): 
     list_tools = await mcp_client.list_available_tools()
     formatted_tools = []
     toolMapper = {} 
@@ -97,7 +97,7 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
             "content": request.content,
         },
     ]  
-    MessageService.create(Message(conversation_id=request.conversationId, user_id=request.userId, content=request.content, from_user=True))
+    MessageService.create(Message(conversation_id=request.conversationId, user_id=request.userId, content=request.content, summary=request.content, from_user=True))
     res = client.chat(
         model=request.modelName,
         messages=prompt,

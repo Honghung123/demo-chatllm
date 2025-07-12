@@ -99,6 +99,26 @@ class ConversationService:
         )
         conn.commit()
         conn.close()
+   
+    @staticmethod
+    def rename(conversation_id: str, new_title: str) -> None:
+        """Update an existing conversation"""
+        conn = ConversationService._get_connection()
+        cursor = conn.cursor()
+        data = {
+            "id": conversation_id,
+            "title": new_title, 
+        }
+        cursor.execute(
+            """
+            UPDATE conversations 
+            SET title = :title 
+            WHERE id = :id
+            """, 
+            data
+        )
+        conn.commit()
+        conn.close() 
     
     @staticmethod
     def delete(conversation_id: str) -> bool:
@@ -111,26 +131,4 @@ class ConversationService:
         conn.close()
         return deleted
     
-    @staticmethod
-    def search_by_title(search_term: str) -> List[Conversation]:
-        """Search conversations by title"""
-        conn = ConversationService._get_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT * FROM conversations WHERE title LIKE ? ORDER BY timestamp DESC", 
-            (f"%{search_term}%",)
-        )
-        rows = cursor.fetchall()
-        
-        conversations = []
-        for row in rows:
-            conversation_data = dict(row)
-            conversations.append(Conversation(
-                id=conversation_data['id'],
-                title=conversation_data['title'],
-                user_id=conversation_data['user_id'],
-                timestamp=conversation_data['timestamp']
-            ))
-        
-        conn.close()
-        return conversations
+    
