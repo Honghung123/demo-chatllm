@@ -31,7 +31,7 @@ categories = [
 
 
 @mcp.tool(
-    description="Search the category of a user's file if the file has been classified before (based on the history chat). This tool helps users to quickly find out which category a file belongs to.",
+    description="Search the category of a user's file if the file has been classified before (based on the history chat). This tool helps users to quickly find out which category a file belongs to. Required fields are file_name and username.",
     annotations
     = {
         "title": "Search category of file {file_name} in metadata",
@@ -56,14 +56,14 @@ def search_file_category(file_name: str, username: str) -> str:
 
 
 @mcp.tool(
-    description="Make sure the file content was read from a file by using reading file tool before using this tool. Classify a file into only one category based on the summary content of the file. Available categories include: " + ", ".join(categories) + ".",
+    description="Classify a file into only one category based on the content of the file. Available categories include: " + ", ".join(categories) + ". Require the file content",
     annotations={
         "title": "Analyze the content of the file and classify it into a category",
     }
 )
 def classify_file_based_on_content(file_content: str) -> str:
     messages = [
-        {"role": "system", "content": "You are a file classification expert. Your task is to analyze the content of the speicific file content and classify it into one of the following categories: " + ", ".join(categories) + ". Only return the category name without any additional text."},
+        {"role": "system", "content": "You are a file classification expert. Your task is to analyze the content of the speicific file content and classify it into one of the following categories: " + ", ".join(categories) + ". ONLY return the category name, DO NOT include any additional text or explanation."},
         {"role": "user", "content": file_content},
     ]
 
@@ -76,12 +76,12 @@ def classify_file_based_on_content(file_content: str) -> str:
 
 
 @mcp.tool(
-    description="Make sure the filename was checked, classified before using this tool. Store category for a file to metadata storage to use in the future.",
+    description="Save a new category or update new category when user requires to update the category of a file to metadata storage. Required fields are file_name, category and username.",
     annotations={
-        "title": "Save category of file {file_name} to metadata",
+        "title": "Updating the category for the file {file_name}",
     }
 )
-def save_file_category(file_name: str, file_category: str, username: str) -> str:
+def save_or_update_file_category(file_name: str, category: str, username: str) -> str:
     """
     Save the category of a file to metadata storage.
 
@@ -93,5 +93,5 @@ def save_file_category(file_name: str, file_category: str, username: str) -> str
         file_category (str): The category to save for the file.
     """
 
-    update_category_per_user(file_name=file_name, user=username, category=file_category)
-    return f"Category '{file_category}' has been saved for file '{file_name}'."
+    update_category_per_user(file_name=file_name, user=username, category=category)
+    return f"Category '{category}' has been updated for file '{file_name}'."

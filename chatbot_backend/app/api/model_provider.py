@@ -33,12 +33,16 @@ def format_yield_content(content: str):
 def parse_response_text(response_text: str): 
     if "```json" in response_text:
         json_content = response_text.split("```json")[1].split("```")[0].strip()
-        response_text = json_content
+        response_text = json_content.strip()
     elif "```" in response_text:
         json_content = response_text.split("```")[1].split("```")[0].strip()
-        response_text = json_content
-    
-    return json.loads(response_text)
+        response_text = json_content.strip() 
+    try:
+        return json.loads(response_text)
+    except Exception as e:
+        return {
+            "message": response_text
+        }
 
 def determine_message_type(data: Any): 
     if isinstance(data, list):
@@ -93,25 +97,25 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
             "content": request.content,
         },
     ] 
-    print(histories)
+    # print(histories)
     MessageService.create(Message(conversation_id=request.conversationId, user_id=request.userId, content=request.content, from_user=True))
     res = client.chat(
         model=request.modelName,
         messages=prompt,
         stream=False,
-        tools=formatted_tools,  
-    )   
+        tools=formatted_tools,
+    )
     print(res.message.content)
-    parsed_response = parse_response_text(res.message.content)   
+    parsed_response = parse_response_text(res.message.content) 
     message_type = determine_message_type(parsed_response)
     if message_type == "error":
-        yield format_yield_content(parsed_response['error']) 
+        yield format_yield_content(parsed_response['error'])
         await asyncio.sleep(0.1)
     elif message_type == "message":
-        yield format_yield_content(parsed_response['message']) 
+        yield format_yield_content(parsed_response['message'])
         await asyncio.sleep(0.1)
     elif message_type == "list": 
-        parsed_tools = parse_tools_to_call(parsed_response)  
+        parsed_tools = parse_tools_to_call(parsed_response)
         if not parsed_tools:
             yield format_yield_content("No tools to call")
             return
@@ -119,14 +123,14 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         async for step in stream_tool_plan_steps(parsed_tools, toolMapper):
             yield step
         storage = {}
-        index = 1 
+        index = 1
         for tool in parsed_tools: 
             tool_name = tool.get("name", "")
             tool_args = tool.get("arguments", {})
-            tool_params = get_tool_params(tool_args, storage) 
-            content = f"🚀 Executing step {index}: {displayToolMessage(toolMapper.get(tool_name), tool_params)}" 
+            tool_params = get_tool_params(tool_args, storage)
+            content = f"🚀 Executing step {index}: {displayToolMessage(toolMapper.get(tool_name), tool_params)}"
             yield format_yield_content(content)
-            await asyncio.sleep(0.1) 
+            await asyncio.sleep(0.1)
             result = await mcp_client.call_tool(tool_name, tool_params)
             print(result)
             if (result.isError):

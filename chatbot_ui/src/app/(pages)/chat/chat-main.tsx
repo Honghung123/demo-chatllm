@@ -171,7 +171,7 @@ export function ChatMain({ user }: ChatMainProps) {
 			if (error.name === "AbortError") {
 				errorMessage = "You have cancelled the request!";
 			} else if (error instanceof Error) {
-				errorMessage = error.message;
+				errorMessage = "Something went wrong. Please try again!";
 			}
 			setMessages((prev) => {
 				if (prev.length > 0 && prev[prev.length - 1].role === "assistant") {
