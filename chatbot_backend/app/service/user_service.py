@@ -192,3 +192,16 @@ class UserService:
         
         conn.close()
         return users 
+    
+    @staticmethod
+    def delete_all_data() -> None:
+        """
+        Delete all data from the users table
+        """ 
+        conn = UserService._get_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM users")
+        conn.commit()
+        conn.close()
+        
+        

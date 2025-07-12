@@ -56,15 +56,15 @@ def search_file_category(file_name: str, username: str) -> str:
 
 
 @mcp.tool(
-    description="Classify a file into only one category based on the content of the file. Available categories include: " + ", ".join(categories) + ". Require the file content",
+    description="Do not use this tool when user ask to update the category of a file. Classify a file into only one category based on the content of the file. Available categories include: " + ", ".join(categories) + ". Require the content of the file",
     annotations={
         "title": "Analyze the content of the file and classify it into a category",
     }
 )
-def classify_file_based_on_content(file_content: str) -> str:
+def classify_file_based_on_content(content: str) -> str:
     messages = [
         {"role": "system", "content": "You are a file classification expert. Your task is to analyze the content of the speicific file content and classify it into one of the following categories: " + ", ".join(categories) + ". ONLY return the category name, DO NOT include any additional text or explanation."},
-        {"role": "user", "content": file_content},
+        {"role": "user", "content": content},
     ]
 
     response = ask_llm(messages)

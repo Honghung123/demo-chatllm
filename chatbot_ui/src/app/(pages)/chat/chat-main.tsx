@@ -4,6 +4,7 @@ import type React from "react";
 
 import { chatStreamingResponse, getAllAiModels, getChatHistory } from "@/api/chat.api";
 import { ChatMessage } from "@/app/(pages)/chat/chat-message";
+import UploadFileModal from "@/app/(pages)/chat/upload-files";
 import GptSvg from "@/assets/svg/gpt.svg";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,21 +14,20 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LoadingOverlay } from "@/components/ui/loading-circle";
+import { RespondingAnimation } from "@/components/ui/responding-animation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Textarea } from "@/components/ui/textarea";
+import eventBus from "@/hooks/event-bus";
 import { AIModel, ChatRequestType, MessageType } from "@/types/chat.type";
 import { UserType } from "@/types/user.type";
 import { formatDistanceToNow } from "date-fns";
-import { Check, ChevronDown, LogOut, Plus, Send, Settings, StopCircle } from "lucide-react";
+import { Check, ChevronDown, LogOut, Plus, Send, StopCircle } from "lucide-react";
 import Image from "next/image";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { remark } from "remark";
 import html from "remark-html";
-import eventBus from "@/hooks/event-bus";
-import UploadFileModal from "@/app/(pages)/chat/upload-files";
-import { RespondingAnimation } from "@/components/ui/responding-animation";
 
 interface ChatMainProps {
 	user: UserType;
@@ -38,7 +38,7 @@ export function ChatMain({ user }: ChatMainProps) {
 	const [conversationId, setConversationId] = useState<string | null>(null);
 	const [aiModels, setAiModels] = useState<AIModel[]>([]);
 	const [selectedModel, setSelectedModel] = useState<AIModel | null>(null);
-	const [messages, setMessages] = useState<MessageType[]>([]);
+	const [messages, setMessages] = useState<MessageType[] | null>(null);
 	const [isLoadingPage, setIsLoadingPage] = useState(true);
 	const [input, setInput] = useState("Read sales.txt and suggest compaigns.");
 	const [isChatResponding, setIsChatResponding] = useState(false);
@@ -95,13 +95,16 @@ export function ChatMain({ user }: ChatMainProps) {
 		if (!input.trim() || isChatResponding) return;
 		scrollToBottom();
 		const userMessage: MessageType = {
-			id: `${messages.length + 1}`,
-			role: "user",
+			conversation_id: conversationId!,
+			is_error: false,
+			from_user: true,
 			content: input.trim(),
 			timestamp: formatDistanceToNow(new Date(), { addSuffix: true }),
+			user_id: user.id,
+			message_id: `${messages!.length + 1}`,
 		};
 
-		setMessages((prev) => [...prev, userMessage]);
+		setMessages((prev) => [...prev!, userMessage]);
 		setInput("");
 		setIsChatResponding(true);
 		const request: ChatRequestType = {
@@ -109,7 +112,7 @@ export function ChatMain({ user }: ChatMainProps) {
 			username: user.username,
 			userRole: user.role,
 			conversationId: conversationId!,
-			role: userMessage.role,
+			role: "user",
 			content: userMessage.content,
 			history: [],
 			model: selectedModel!.model,
@@ -143,19 +146,21 @@ export function ChatMain({ user }: ChatMainProps) {
 							const assistantContentHtml = processedContent.toString();
 							setMessages((prev) => {
 								// Cập nhật tin nhắn assistant cuối cùng hoặc thêm mới
-								if (prev.length > 0 && prev[prev.length - 1].role === "assistant") {
-									const newPrev = [...prev];
+								if (prev!.length > 0 && !prev![prev!.length - 1].from_user) {
+									const newPrev = [...prev!];
 									newPrev[newPrev.length - 1].content = assistantContentHtml;
 									return newPrev;
 								} else {
 									return [
-										...prev,
+										...prev!,
 										{
-											id: `${messages.length + 2}`,
-											role: "assistant",
+											message_id: `${messages!.length + 2}`,
+											from_user: false,
 											content: assistantContentHtml,
 											timestamp: formatDistanceToNow(new Date(), { addSuffix: true }),
-											isError: false,
+											is_error: false,
+											conversation_id: conversationId!,
+											user_id: user.id,
 										},
 									];
 								}
@@ -174,20 +179,22 @@ export function ChatMain({ user }: ChatMainProps) {
 				errorMessage = "Something went wrong. Please try again!";
 			}
 			setMessages((prev) => {
-				if (prev.length > 0 && prev[prev.length - 1].role === "assistant") {
-					const newPrev = [...prev];
+				if (prev!.length > 0 && prev![prev!.length - 1].from_user) {
+					const newPrev = [...prev!];
 					newPrev[newPrev.length - 1].content = errorMessage;
-					newPrev[newPrev.length - 1].isError = true;
+					newPrev[newPrev.length - 1].is_error = true;
 					return newPrev;
 				} else {
 					return [
-						...prev,
+						...prev!,
 						{
-							id: `${messages.length + 2}`,
-							role: "assistant",
+							message_id: `${messages!.length + 2}`,
+							is_error: true,
+							from_user: false,
 							content: errorMessage,
 							timestamp: formatDistanceToNow(new Date(), { addSuffix: true }),
-							isError: true,
+							user_id: user.id,
+							conversation_id: conversationId!,
 						},
 					];
 				}
@@ -262,9 +269,7 @@ export function ChatMain({ user }: ChatMainProps) {
 			{/* Messages */}
 			<ScrollArea ref={scrollAreaRef} className="flex-1 px-4">
 				<div className="max-w-3xl mx-auto py-1 space-y-6 max-h-[69vh]">
-					{messages.map((message) => (
-						<ChatMessage key={message.id} message={message} />
-					))}
+					{messages && messages.map((message, index) => <ChatMessage key={index} message={message} />)}
 					{isChatResponding && !isTyping && (
 						<div className="flex items-start space-x-2">
 							<div className="p-0">

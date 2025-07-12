@@ -17,6 +17,7 @@ def seed_role_data():
 
 def seed_user_data(): 
     UserService.create_table_if_not_exists()
+    UserService.delete_all_data()
     UserService.create(user=User(username="admin", password="123456", role=RoleName.ADMIN.split("|")[0]))  
     UserService.create(user=User(username="humanresource", password="123456", role=RoleName.HR.split("|")[0]))  
     UserService.create(user=User(username="sales", password="123456", role=RoleName.SALES.split("|")[0]))     
@@ -30,10 +31,6 @@ def seed_conversation_data():
 
 def seed_message_data(): 
     MessageService.create_table_if_not_exists() 
-
-def seed_file_data():  
-    # FileService.create(file=FileSystem(name="abds232s-2324.pdf", orginal_name="ke hoach 2025", extension="pdf", username="admin"), roles=["admin", "hr", "sales", "marketing"])
-    pass
      
 def seed_data():    
     ensure_db_file_exists()
@@ -41,8 +38,7 @@ def seed_data():
     seed_role_data()
     seed_user_data()
     seed_conversation_data()
-    seed_message_data()
-    seed_file_data()
+    seed_message_data() 
 
 def create_dirs():
     documents_dir = f"{get_root_path()}/data/files"

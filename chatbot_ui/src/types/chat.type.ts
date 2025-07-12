@@ -39,11 +39,13 @@ export type ChatResponseType = {
 };
 
 export type MessageType = {
-	id: string;
-	role: "user" | "assistant";
+	message_id: string;
+	conversation_id: string;
+	user_id: string;
 	content: string;
+	from_user: boolean;
 	timestamp: string;
-	isError?: boolean;
+	is_error?: boolean;
 };
 
 export type FileListType = {

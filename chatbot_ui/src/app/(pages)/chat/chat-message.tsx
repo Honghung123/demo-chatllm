@@ -31,7 +31,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
 		));
 	};
 
-	if (message.role === "user") {
+	if (message.from_user) {
 		return (
 			<div className="flex items-start space-x-4 justify-end">
 				<div className="flex-1 max-w-2xl flex justify-end">
@@ -40,7 +40,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
 					</div>
 				</div>
 				<div className="w-6 h-6 bg-gray-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-					{message.role.charAt(0).toUpperCase()}
+					{message.user_id.charAt(0).toUpperCase()}
 				</div>
 			</div>
 		);
@@ -49,19 +49,23 @@ export function ChatMessage({ message }: ChatMessageProps) {
 	return (
 		<div className="flex items-start space-x-2 relative">
 			<div className="p-0">
-				<Image src={GptSvg} alt="GPT Logo" className="w-6 h-6" />
+				<img
+					src="https://ollama.com/public/assets/c889cc0d-cb83-4c46-a98e-0d0e273151b9/42f6b28d-9117-48cd-ac0d-44baaf5c178e.png"
+					alt="GPT Logo"
+					className="w-6 h-6"
+				/>
 			</div>
 			<div className="flex-1 group hover:bg-[#f5f5f5] px-2 rounded-md">
 				<div className="prose prose-gray max-w-none">
 					<div
-						className={`${message.isError ? "text-red-500" : "text-gray-900"} leading-relaxed`}
+						className={`${message.is_error ? "text-red-500" : "text-gray-900"} leading-relaxed`}
 						dangerouslySetInnerHTML={{ __html: message.content }}
 					></div>
 				</div>
 
 				{/* Action buttons */}
 				<div className="flex items-center space-x-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity absolute">
-					{!message.isError && (
+					{!message.is_error && (
 						<>
 							<Button
 								variant="ghost"

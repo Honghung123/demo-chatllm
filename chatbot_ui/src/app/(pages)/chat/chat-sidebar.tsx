@@ -29,7 +29,6 @@ import { ConversationType, FileListType } from "@/types/chat.type";
 import { UserType } from "@/types/user.type";
 import { ChevronRight, Edit3, MoreHorizontal, PlusIcon, Trash2 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 interface ChatSidebarProps {
@@ -58,6 +57,8 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
 				handleAddNewChat();
 			} else {
 				setChatHistory(chatHistoriesList);
+				eventBus.emit("changeConversation", { conversationId: chatHistoriesList[0].id });
+				setSelectedChat(chatHistoriesList[0].id);
 			}
 		};
 		fetchData();
@@ -104,7 +105,11 @@ export function ChatSidebar({ user }: ChatSidebarProps) {
 			<SidebarHeader className="p-2">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center justify-center">
-						<Image src={GptSvg} alt="GPT Logo" className="w-8 h-8" />
+						<img
+							src="https://ollama.com/public/assets/c889cc0d-cb83-4c46-a98e-0d0e273151b9/42f6b28d-9117-48cd-ac0d-44baaf5c178e.png"
+							alt="GPT Logo"
+							className="w-8 h-8"
+						/>
 					</div>
 				</div>
 
