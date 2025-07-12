@@ -17,7 +17,7 @@ db = ChromaManager(collection_name="my_documents", persist_directory=f"{get_root
         "title": "Searching the file content and getting related files"
     }
 )
-def search_file_has_content_related(user_input: str, username: str, role: str) -> List[str]:
+def search_file_has_content_related(user_input: str, username: str = "admin", role: str = "admin") -> List[str]:
     """
     Read specific files or retrieve relevant documents based on a query.
 
@@ -41,7 +41,7 @@ def search_file_has_content_related(user_input: str, username: str, role: str) -
         "title": "Searching file {filename}"
     }
 )
-def search_file_has_name_like(filename: str, username: str, role: str) -> str:
+def search_file_has_name_like(filename: str, username: str = "admin", role: str = "admin") -> str:
     """
     Search for file that have name similar to the provided filename.
 

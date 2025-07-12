@@ -37,7 +37,7 @@ categories = [
         "title": "Search category of file {file_name} in metadata",
     }
 )
-def search_file_category(file_name: str, username: str) -> str:
+def search_file_category(file_name: str, username: str = "admin") -> str:
     """
     Search the category of a file for a specific user.
 
