@@ -95,7 +95,6 @@ export function ChatMain({ user }: ChatMainProps) {
 		if (!input.trim() || isChatResponding) return;
 		let shouldUpdateConversationName = false;
 		let conversationName = "";
-		console.log(messages);
 		if (messages!.length == 1) {
 			shouldUpdateConversationName = true;
 			conversationName = input.trim();
@@ -289,7 +288,11 @@ export function ChatMain({ user }: ChatMainProps) {
 					{isChatResponding && !isTyping && (
 						<div className="flex items-start space-x-2">
 							<div className="p-0">
-								<Image src={GptSvg} alt="GPT Logo" className="w-6 h-6" />
+								<img
+									src="https://ollama.com/public/assets/c889cc0d-cb83-4c46-a98e-0d0e273151b9/42f6b28d-9117-48cd-ac0d-44baaf5c178e.png"
+									alt="GPT Logo"
+									className="w-6 h-6"
+								/>
 							</div>
 							<div className="flex-1 flex">
 								<RespondingAnimation variant="dots" className="text-gray-700" />

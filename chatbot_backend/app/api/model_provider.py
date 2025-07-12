@@ -102,45 +102,47 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         model=request.modelName,
         messages=prompt,
         stream=False, 
-    )   
-    print(res)
+    )    
     parsed_response = []
-    if not res.message.content:
-        parsed_response = []
-        for i, tool_call in enumerate(res.message["tool_calls"], start=1):
-            parsed_response.append(
-                {
-                    "name": tool_call.function.name,
-                    "arguments": tool_call.function.arguments
-                }
-            )
-    else:
-        parsed_response = parse_response_text(res.message.content)   
-    message_type = determine_message_type(parsed_response)
-    if message_type == "error":
-        if isinstance(parsed_response, str):
-            yield format_yield_content(parsed_response)
-            chatResponseMessage += format_yield_content(parsed_response)
-            chatResponseSummaryMessage += parsed_response
-        elif isinstance(parsed_response, dict):
-            yield format_yield_content(parsed_response['error']) 
-            chatResponseMessage += format_yield_content(parsed_response['error'])
-            chatResponseSummaryMessage += parsed_response['error']
-        await asyncio.sleep(0.1)
-    elif message_type == "message":
-        yield format_yield_content(parsed_response['message'])
-        chatResponseMessage += format_yield_content(parsed_response['message'])
-        chatResponseSummaryMessage += parsed_response['message']
-        await asyncio.sleep(0.1)
-    elif message_type == "list": 
-        try:
+    print(res.message.content)
+    try:
+        if not res.message.content:
+            parsed_response = []
+            for i, tool_call in enumerate(res.message["tool_calls"], start=1):
+                parsed_response.append(
+                    {
+                        "name": tool_call.function.name,
+                        "arguments": tool_call.function.arguments
+                    }
+                )
+        else:
+            parsed_response = parse_response_text(res.message.content)   
+        print(parsed_response)
+        message_type = determine_message_type(parsed_response)
+        if message_type == "error":
+            if isinstance(parsed_response, str):
+                yield format_yield_content(parsed_response)
+                chatResponseMessage += "\n" + parsed_response
+                chatResponseSummaryMessage += parsed_response + ", "
+            elif isinstance(parsed_response, dict):
+                yield format_yield_content(parsed_response['error']) 
+                chatResponseMessage += "\n" + parsed_response['error']
+                chatResponseSummaryMessage += parsed_response['error'] + ", "
+            await asyncio.sleep(0.1)
+        elif message_type == "message":
+            chatResponseMessage += "\n" + parsed_response['message']
+            chatResponseSummaryMessage += parsed_response['message'] + ", "
+            yield format_yield_content(parsed_response['message'])
+            await asyncio.sleep(0.1)
+        elif message_type == "list": 
             parsed_tools = parse_tools_to_call(parsed_response)
             if not parsed_tools:
                 yield format_yield_content("No tools to call")
-                chatResponseMessage += format_yield_content("No tools to call")
-                chatResponseSummaryMessage += "No tools to call"
+                chatResponseMessage += "\n" + "No tools to call"
+                chatResponseSummaryMessage += "No tools to call, "
                 return
             yield format_yield_content("Here are the steps to complete the task:")
+            chatResponseMessage += "\n" + "Here are the steps to complete the task:"
             async for step in stream_tool_plan_steps(parsed_tools, toolMapper):
                 yield step
                 chatResponseMessage += step
@@ -151,33 +153,35 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
                 tool_args = tool.get("arguments", {})
                 tool_params = get_tool_params(tool_args, storage)
                 content = f"🚀 Executing step {index}: {displayToolMessage(toolMapper.get(tool_name), tool_params)}"
-                chatResponseMessage += content
+                chatResponseMessage += "\n" + content
                 yield format_yield_content(content)
                 await asyncio.sleep(0.1)
                 result = await mcp_client.call_tool(tool_name, tool_params)
                 if (result.isError):
-                    raise Exception()
+                    print(result)
+                    # raise Exception()
                 chatResponseSummaryMessage += f"{displayToolMessage(toolMapper.get(tool_name), tool_params)}: {result.content[0].text if len(result.content) > 0 else ''}, " 
                 
                 tool_result = save_response_to_dict(tool_name, result, storage)
                 chatResponseMessage += tool_result
-                yield tool_result
+                yield format_yield_content(tool_result)
                 index += 1
-
-            MessageService.create(
-                message=Message(
-                    conversation_id=request.conversationId,
-                    user_id=request.userId,
-                    content=chatResponseMessage,
-                    summary=chatResponseSummaryMessage,
-                    from_user=False
-                )
-            )
-            yield format_yield_content("\n🎉 Done!")  
-        except Exception as e:
-            print(e)
-            yield format_yield_content(f"Failed to response. Please try again.")
-        return
+        yield format_yield_content("\n🎉 Done!")  
+        chatResponseMessage += "\n🎉 Done!"
+    except Exception as e:
+        print(e)    
+        yield format_yield_content(f"Failed to response. Please try again.")
+        chatResponseMessage += "\n" + f"Failed to response. Please try again."
+    MessageService.create(
+        message=Message(
+            conversation_id=request.conversationId,
+            user_id=request.userId,
+            content=chatResponseMessage,
+            summary=chatResponseSummaryMessage,
+            from_user=False
+        )
+    )
+    return
 
 def get_model_event_generator(): 
     return ollama_event_generator 
@@ -185,16 +189,14 @@ def get_model_event_generator():
 def save_response_to_dict(tool_name: str, result, storage: Dict[str, Any]):
     content = result.content
     if len(content) == 0:
-        return format_yield_content("")
+        return ""
     content = content[0]
     if content.type == "text":
         name = f"result_{tool_name}"
         text = content.text
-        storage[name] = text
-        # if (tool_name == "read_file"):
-        #     text = "Read file successfully"
-        return format_yield_content(text)
-    return format_yield_content("") 
+        storage[name] = text 
+        return text
+    return ""
 
 
 def get_tool_params(
