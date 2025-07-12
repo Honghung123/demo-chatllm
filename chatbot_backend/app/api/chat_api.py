@@ -80,12 +80,24 @@ async def get_list_conversations(userId: str):
 
 @app.post("/conversations/new/{userId}", response_model=Conversation)
 async def new_conversation(userId: str):
+    conversation_id = str(uuid.uuid4())
     conversation = Conversation( 
+        id=conversation_id,
         user_id=userId,
         title="New conservation",
     )
     ConversationService.create(conversation)
+    MessageService.create(
+        message=Message(
+            conversation_id=conversation_id,
+            user_id=userId,
+            content="Hi, I'm your assistant, how can I help you today?",
+            from_user=False,
+            is_error=False, 
+        )
+    )
     return conversation
+
 class ListFileResponse(BaseModel):
     name: str
     listFiles: List[FileSystem]

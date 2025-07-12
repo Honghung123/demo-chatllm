@@ -63,7 +63,7 @@ def search_file_has_name_like(filename: str, username: str, role: str) -> str:
     return result.strip()
 
 @mcp.tool(
-    description="Make sure the file was checked that existed before using this tool. Read the content of the filename. Example filename: 'abc.txt', 'user_guide.pdf', ...", 
+    description="Do not use this tool when update category of a file. Read the content of the filename. Example filename: 'abc.txt', 'user_guide.pdf', ...", 
     annotations={
         "title": "Reading file {filename}"
     }
@@ -86,7 +86,7 @@ def read_file(filename: str) -> str:
         return f"Error reading file {filename}: {str(e)}"
 
 @mcp.tool(
-    description="Create a file with the given filename and write the content to the file",
+    description="Create a file with the given file name and write the content to the file. Not misunderstand this tool as update/save the category of the file. This tool is used to create a new file and write file content to it. Required fields are file_name and content.",
     annotations={
         "title": "Writing file {file_name}"
     }
