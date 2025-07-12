@@ -61,10 +61,10 @@ def search_file_category(file_name: str, username: str) -> str:
         "title": "Analyze the content of the file and classify it into a category",
     }
 )
-def classify_file_based_on_content(file_content: str) -> str:
+def classify_file_based_on_content(content: str) -> str:
     messages = [
         {"role": "system", "content": "You are a file classification expert. Your task is to analyze the content of the speicific file content and classify it into one of the following categories: " + ", ".join(categories) + ". Only return the category name without any additional text."},
-        {"role": "user", "content": file_content},
+        {"role": "user", "content": content},
     ]
 
     response = ask_llm(messages)

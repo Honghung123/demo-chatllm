@@ -84,10 +84,9 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         toolMapper[tool.name] = tool.annotations.title  
     chatResponseMessage = ""
     historyMessage = MessageService.get_all_chat(request.userId, request.conversationId)
-    histories = [{"role": "user" if message.from_user else "system", "content": message.content} for message in historyMessage]
+    histories = [{"role": "user" if message.from_user else "assistant", "content": message.content} for message in historyMessage]
     prompt = [
-        *histories,
-        {"role": "system", "content": sys_prompt(request.username, request.userRole)},
+        {"role": "system", "content": sys_prompt(request.username, request.userRole, formatted_tools, histories)},
         {
             "role": "user",
             "content": request.content,
@@ -99,7 +98,7 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         model=request.modelName,
         messages=prompt,
         stream=False,
-        tools=formatted_tools,  
+        # tools=formatted_tools,  
     )   
     print(res)
     parsed_response = []
@@ -116,7 +115,10 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         parsed_response = parse_response_text(res.message.content)   
     message_type = determine_message_type(parsed_response)
     if message_type == "error":
-        yield format_yield_content(parsed_response['error']) 
+        if isinstance(parsed_response, str):
+            yield format_yield_content(parsed_response)
+        elif isinstance(parsed_response, dict):
+            yield format_yield_content(parsed_response['error']) 
         await asyncio.sleep(0.1)
     elif message_type == "message":
         yield format_yield_content(parsed_response['message']) 
@@ -170,8 +172,8 @@ def save_response_to_dict(tool_name: str, result, storage: Dict[str, Any]):
         name = f"result_{tool_name}"
         text = content.text
         storage[name] = text
-        if (tool_name == "read_file"):
-            text = "Read file successfully"
+        # if (tool_name == "read_file"):
+        #     text = "Read file successfully"
         return format_yield_content(text)
     return format_yield_content("") 
 
