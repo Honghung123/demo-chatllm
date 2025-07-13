@@ -36,12 +36,13 @@ def analyze_sales(file_content: str) -> str:
 
 
 @mcp.tool(
-    description="Suggest marketing campaigns based on user query and optional sales/customer data", 
+    description="Suggest marketing campaigns based on user query (user input) and optional sales/customer data", 
     annotations={
         "title": "Suggest marketing campaigns based on user query and optional sales/customer data"
     }
 )
-def suggest_campaign(query: str, file_content: Optional[str] = None) -> str:
+def suggest_campaign(query: Optional[str] = None, file_content: Optional[str] = None) -> str:
+    query = query or "sales"
     """Suggest effective marketing campaigns based primarily on the query, with optional data"""
     # Build dynamic user message
     user_message = query
@@ -68,8 +69,9 @@ def suggest_campaign(query: str, file_content: Optional[str] = None) -> str:
         "title": "Predict future sales trends from historical data or from a user query"
     }
 )
-def predict_future(query: str, file_content: Optional[str] = None) -> str:
+def predict_future(query: Optional[str] = None, file_content: Optional[str] = None) -> str:
     """Predict future trends and performance from marketing and sales data"""
+    query = query or "sales"
     user_message = query
     if file_content:
         user_message += "\n\nAdditional data:\n" + file_content

@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from ollama import Client 
 from app.llm import mcp_client
 
-from app.api.prompt import sys_prompt
+from app.api.prompt import sys_prompt, user_prompt
 
 from app.schema.message import Message
 from app.service.message_service import MessageService
@@ -94,7 +94,7 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         {"role": "system", "content": sys_prompt(request.username, request.userRole, formatted_tools, histories)},
         {
             "role": "user",
-            "content": request.content,
+            "content": user_prompt(request.username, request.role, request.content),
         },
     ]  
     MessageService.create(Message(conversation_id=request.conversationId, user_id=request.userId, content=request.content, summary=request.content, from_user=True))
@@ -104,7 +104,7 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         stream=False, 
     )    
     parsed_response = []
-    print(res.message.content)
+    print('res.message.content', res.message.content)
     try:
         if not res.message.content:
             parsed_response = []
@@ -117,7 +117,7 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
                 )
         else:
             parsed_response = parse_response_text(res.message.content)   
-        print(parsed_response)
+        print('parsed_response', parsed_response)
         message_type = determine_message_type(parsed_response)
         if message_type == "error":
             if isinstance(parsed_response, str):
@@ -158,7 +158,7 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
                 await asyncio.sleep(0.1)
                 result = await mcp_client.call_tool(tool_name, tool_params)
                 if (result.isError):
-                    print(result)
+                    print('result', result)
                     # raise Exception()
                 if tool_name.startswith("search_file"):
                     if(not result.content or len(result.content) == 0):
