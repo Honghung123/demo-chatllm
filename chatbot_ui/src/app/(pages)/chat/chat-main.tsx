@@ -5,7 +5,6 @@ import type React from "react";
 import { chatStreamingResponse, getAllAiModels, getChatHistory, renameTheConversation } from "@/api/chat.api";
 import { ChatMessage } from "@/app/(pages)/chat/chat-message";
 import UploadFileModal from "@/app/(pages)/chat/upload-files";
-import GptSvg from "@/assets/svg/gpt.svg";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -28,6 +27,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { remark } from "remark";
 import html from "remark-html";
+import Timer from "@/components/ui/timer";
 
 interface ChatMainProps {
 	user: UserType;
@@ -307,6 +307,7 @@ export function ChatMain({ user }: ChatMainProps) {
 							</div>
 						</div>
 					)}
+					{isChatResponding && <Timer isRunning={isChatResponding} />}
 					<div style={{ height: "2rem", visibility: "hidden" }} />
 				</div>
 			</ScrollArea>
