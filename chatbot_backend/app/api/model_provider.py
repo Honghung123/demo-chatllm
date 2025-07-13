@@ -160,6 +160,9 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
                 if (result.isError):
                     print(result)
                     # raise Exception()
+                if tool_name.startswith("search_file"):
+                    if(not result.content or len(result.content) == 0):
+                        raise Exception("FILE_NOT_FOUND")
                 chatResponseSummaryMessage += f"{displayToolMessage(toolMapper.get(tool_name), tool_params)}: {result.content[0].text if len(result.content) > 0 else ''}, " 
                 
                 tool_result = save_response_to_dict(tool_name, result, storage)
@@ -169,9 +172,13 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         yield format_yield_content("\n🎉 Done!")  
         chatResponseMessage += "\n🎉 Done!"
     except Exception as e:
-        print(e)    
-        yield format_yield_content(f"Failed to response. Please try again.")
-        chatResponseMessage += "\n" + f"Failed to response. Please try again."
+        print(e)
+        if(str(e) == "FILE_NOT_FOUND"):
+            yield format_yield_content(f"No such file was found in the system!")
+            chatResponseMessage += "\n" + f"File not found."
+        else:
+            yield format_yield_content(f"Failed to response. Please try again.")
+            chatResponseMessage += "\n" + f"Failed to response. Please try again."
     MessageService.create(
         message=Message(
             conversation_id=request.conversationId,
