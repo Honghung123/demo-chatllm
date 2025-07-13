@@ -31,6 +31,7 @@ def format_yield_content(content: str):
     return f"data: {json.dumps({'content': f'{content}\n\n\n'})}\n\n"  
 
 def parse_response_text(response_text: str): 
+    original_response_text = response_text
     if "```json" in response_text:
         json_content = response_text.split("```json")[1].split("```")[0].strip()
         response_text = json_content.strip()
@@ -41,7 +42,7 @@ def parse_response_text(response_text: str):
         return json.loads(response_text)
     except Exception as e:
         return {
-            "message": response_text
+            "message": original_response_text
         }
 
 def determine_message_type(data: Any): 
