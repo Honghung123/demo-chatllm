@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Optional
 import uvicorn
 import os
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.model_provider import ChatRequest, get_model_event_generator  
+from app.api.model_provider import ChatRequest, ollama_event_generator  
 from app.schema.conversation import Conversation
 from app.schema.file import FileSystem
 from app.schema.message import Message
@@ -35,6 +35,12 @@ app = FastAPI(
 
 aiModels = [
         {
+            "model": "gemini",
+            "modelName": "gemini-2.5-flash",
+            "displayName": "Gemini",
+            "description": "Best for complex tasks",
+        },
+        {
             "model": "ollama",
             "modelName": "mistral",
             "displayName": "Ollama - Mistral",
@@ -44,12 +50,6 @@ aiModels = [
             "model": "ollama",
             "modelName": "llama3.1",
             "displayName": "Ollama - llama3.1",
-            "description": "Great for everyday tasks",
-        },
-        {
-            "model": "ollama",
-            "modelName": "gemma:2b",
-            "displayName": "Ollama - gemma:2b",
             "description": "Great for everyday tasks",
         },
     ]
@@ -134,10 +134,9 @@ async def get_chat_history(userId: str, conversationId: str):
  
 @app.post("/chat", response_model=Message)
 async def handle_chat(httpRequest: Request, request: ChatRequest):
-    try:
-        event_generator = get_model_event_generator()
+    try: 
         # Trả về response dạng text/event-stream để client nhận realtime
-        return StreamingResponse(event_generator(request, httpRequest), media_type="text/event-stream")
+        return StreamingResponse(ollama_event_generator(request, httpRequest), media_type="text/event-stream")
     except Exception as e: 
         raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")
 

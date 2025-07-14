@@ -68,12 +68,12 @@ def classify_file_based_on_content(content: str) -> str:
     ]
 
     response = ask_llm(messages)
-    return (
-        response["message"]["content"]
-        if "message" in response
-        else ""
-    )
-
+    # return (
+    #     response["message"]["content"]
+    #     if "message" in response
+    #     else ""
+    # )
+    return response.text
 
 @mcp.tool(
     description="Save a new category or update new category when user requires to update the category of a file to metadata storage. Required fields are file_name, category and username.",

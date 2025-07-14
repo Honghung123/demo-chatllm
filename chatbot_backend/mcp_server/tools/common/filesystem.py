@@ -59,7 +59,8 @@ def search_file_has_name_like(filename: str, username: str = "admin", role: str 
         {"role": "user", "content": filename},
     ]
     response = ask_llm(messages)
-    result = response["message"]["content"] 
+    # result = response["message"]["content"] 
+    result = response.text
     return result.strip()
 
 @mcp.tool(

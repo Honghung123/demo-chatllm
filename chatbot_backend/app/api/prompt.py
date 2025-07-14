@@ -239,7 +239,7 @@
 # <|assistant|>"""
 
 def sys_prompt(username: str, role: str, tools: list, histories: list) -> str: 
-    return f"""<|system|>
+    return f"""
 You are a tool orchestration assistant for '{username}' (role: '{role}').
 
 ## WORKFLOW
@@ -323,13 +323,13 @@ You are a tool orchestration assistant for '{username}' (role: '{role}').
 - Use "result_<tool_name>" for chaining
 
 Return valid JSON only.
-<|assistant|>"""
+"""
 
 
 def user_prompt(username: str, role: str, content: str) -> str:
-    return f"""<|user|>
+    return f"""
 **USER**: {username} (Role: {role})
 **CURRENT USER REQUEST**: {content}
 
 **IMPORTANT**: This is my current request. Analyze my intent carefully and determine exactly what I need right now.
-<|assistant|>"""
+"""

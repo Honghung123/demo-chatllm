@@ -14,8 +14,9 @@ def summary_file_content(content: str) -> str:
         {"role": "user", "content": content},
     ]
     response = ask_llm(messages) 
-    return (
-        response["message"]["content"]
-        if "message" in response
-        else ""
-    )
+    # return (
+    #     response["message"]["content"]
+    #     if "message" in response
+    #     else ""
+    # )
+    return response.text

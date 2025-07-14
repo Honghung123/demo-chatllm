@@ -11,6 +11,8 @@ from app.api.prompt import sys_prompt, user_prompt
 from app.schema.message import Message
 from app.service.message_service import MessageService
 from utils.environment import OLLAMA_BASE_URL
+from google import genai
+from google.genai import types
 
 class ChatRequest(BaseModel):
     conversationId: str
@@ -26,6 +28,8 @@ class ChatRequest(BaseModel):
 client = Client(
     host=OLLAMA_BASE_URL 
 ) 
+
+geminiClient = genai.Client() 
 
 def format_yield_content(content: str):
     return f"data: {json.dumps({'content': f'{content}\n\n\n'})}\n\n"  
@@ -99,25 +103,24 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
         },
     ]  
     MessageService.create(Message(conversation_id=request.conversationId, user_id=request.userId, content=request.content, summary=request.content, from_user=True))
-    res = client.chat(
-        model=request.modelName,
-        messages=prompt,
-        stream=False, 
-    )    
+    res = ask_llm(request, prompt)    
     parsed_response = []
-    print('res.message.content', res.message.content)
     try:
-        if not res.message.content:
-            parsed_response = []
-            for i, tool_call in enumerate(res.message["tool_calls"], start=1):
-                parsed_response.append(
-                    {
-                        "name": tool_call.function.name,
-                        "arguments": tool_call.function.arguments
-                    }
-                )
-        else:
-            parsed_response = parse_response_text(res.message.content)   
+        if request.model == "gemini":
+            print(res.text) 
+            parsed_response = parse_response_text(res.text)
+        else: 
+            if not res.message.content:
+                parsed_response = []
+                for i, tool_call in enumerate(res.message["tool_calls"], start=1):
+                    parsed_response.append(
+                        {
+                            "name": tool_call.function.name,
+                            "arguments": tool_call.function.arguments
+                        }
+                    )
+            else:
+                parsed_response = parse_response_text(res.message.content)   
         print('parsed_response', parsed_response)
         message_type = determine_message_type(parsed_response)
         if message_type == "error":
@@ -191,8 +194,25 @@ async def ollama_event_generator(request: ChatRequest, httpRequest: Request):
     )
     return
 
-def get_model_event_generator(): 
-    return ollama_event_generator 
+def ask_llm(request: ChatRequest, prompt: List[Dict[str, str]]):  
+    if request.model == "gemini": 
+        contents = [
+            types.Content(role="model", parts=[types.Part(text=prompt[0]["content"])]), 
+            types.Content(role="user", parts=[types.Part(text=prompt[1]["content"])])
+        ]
+        return geminiClient.models.generate_content(
+            model=request.modelName,
+            contents=contents,
+            config=types.GenerateContentConfig(
+                thinking_config=types.ThinkingConfig(thinking_budget=0)  # Disable thinking for faster response
+            )
+        )
+    else:
+        return client.chat(
+            model=request.modelName,
+            messages=prompt,
+            stream=False, 
+        ) 
 
 def save_response_to_dict(tool_name: str, result, storage: Dict[str, Any]):
     content = result.content
