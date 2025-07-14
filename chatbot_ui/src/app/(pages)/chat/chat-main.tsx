@@ -40,7 +40,7 @@ export function ChatMain({ user }: ChatMainProps) {
 	const [selectedModel, setSelectedModel] = useState<AIModel | null>(null);
 	const [messages, setMessages] = useState<MessageType[] | null>(null);
 	const [isLoadingPage, setIsLoadingPage] = useState(true);
-	const [input, setInput] = useState("Read sales.txt and suggest compaigns.");
+	const [input, setInput] = useState("");
 	const [isChatResponding, setIsChatResponding] = useState(false);
 	const [isTyping, setIsTyping] = useState(false);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
